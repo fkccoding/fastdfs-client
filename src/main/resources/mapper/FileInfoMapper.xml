@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.kd.fastdfsclient.mapper.FileInfoMapper">
+
+    <select id="findFileByName" parameterType="string" resultType="com.kd.fastdfsclient.entity.FileInfo" >
+        select * from file_info where file_name=#{filename};
+    </select>
+
+
+</mapper>

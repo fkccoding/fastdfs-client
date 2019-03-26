@@ -4,6 +4,7 @@ import org.csource.common.NameValuePair;
 import org.csource.fastdfs.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
@@ -22,8 +23,41 @@ public class FastDFSClient {
 		}
 	}
 
+	/**
+	 * @param multipartFile
+	 * @return
+	 * @throws IOException
+	 */
+	public static String[] saveFile(MultipartFile multipartFile) throws IOException {
+		String[] fileAbsolutePath = {};
+		String fileName = multipartFile.getOriginalFilename();
+		String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
+		byte[] file_buff = null;
+		InputStream inputStream = multipartFile.getInputStream();
+		if (inputStream != null) {
+			int len1 = inputStream.available();
+			file_buff = new byte[len1];
+			inputStream.read(file_buff);
+		}
+		inputStream.close();
+		FastDFSFile file = new FastDFSFile(fileName, file_buff, ext);
+		try {
+			fileAbsolutePath = upload(file);  // -> upload to fastdfs
+		} catch (Exception e) {
+			logger.error("upload file Exception!", e);
+		}
+		if (fileAbsolutePath == null) {
+			logger.error("upload file failed,please upload again!");
+		}
+		String[] strings = new String[3];
+		strings[0] = getTrackerUrl() + fileAbsolutePath[0] + "/" + fileAbsolutePath[1];
+		strings[1] = fileAbsolutePath[0];
+		strings[2] = fileAbsolutePath[1];
+		return strings;
+	}
+
 	public static String[] upload(FastDFSFile file) {
-		logger.info("File Name: " + file.getName() + "File Length:" + file.getContent().length);
+		logger.info("File Name: " + file.getName() + " File Length:" + file.getContent().length);
 
 		NameValuePair[] meta_list = new NameValuePair[1];
 		meta_list[0] = new NameValuePair("author", file.getAuthor());
