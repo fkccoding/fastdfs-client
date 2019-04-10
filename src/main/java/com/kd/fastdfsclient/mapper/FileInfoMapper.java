@@ -9,4 +9,6 @@ import com.kd.fastdfsclient.entity.FileInfo;
  */
 public interface FileInfoMapper extends BaseMapper<FileInfo> {
     FileInfo findFileByName(String filename);
+
+    void deleteByFileName(String filename);
 }

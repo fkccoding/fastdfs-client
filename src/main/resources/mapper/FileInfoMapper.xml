@@ -7,4 +7,7 @@
     </select>
 
 
+    <delete id="deleteByFileName" parameterType="string" >
+        DELETE FROM file_info where file_name=#{filename};
+    </delete>
 </mapper>

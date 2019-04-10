@@ -9,4 +9,5 @@ import com.kd.fastdfsclient.entity.FileInfo;
  */
 public interface FileInfoService extends IService<FileInfo> {
     FileInfo findFileByName(String filename);
+    public void deleteByFileName(String filename);
 }

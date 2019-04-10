@@ -1,14 +1,37 @@
 <!DOCTYPE html>
-<html lang="zh" xmlns:th="http://www.thymeleaf.org">
-<script type="application/javascript">
-    function f() {
-        var fileUrl = document.getElementById("pro").value;
-        var url = "http://localhost:8012/onlinePreview?url=http://192.100.1.158:8080/group1/M00/00/00/"  + encodeURIComponent(fileUrl);
-        var winHeight = window.document.documentElement.clientHeight-10;
-        window.open(url, "_blank", "height=" + winHeight
-            + ",top=80,left=180,toolbar=no, menubar=no, scrollbars=yes, resizable=yes");
-    }
-</script>
+<html lang="zh" xmlns:th="http://www.thymeleaf.org" charset="utf-8">
+<head>
+    <title>FastDFS文件上传</title>
+    <meta charset="utf-8">
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script type="application/javascript">
+        function f() {
+            var filename = document.getElementById("pro").value;
+            var group;
+            var remoteFileName;
+            $.ajax({
+                url: "/findByName",
+                type: "GET",
+                data: {filename: filename},
+                success: function (data) {
+                    // var json = "<h4>Ajax Response</h4><pre>"
+                    //     + JSON.stringify(data, null, 4) + "</pre>";
+                    // $('#feedback').html(json);
+                    // console.log("SUCCESS : ", data);
+                    // console.log("remote:", data.remoteFileName);
+                    // $("#btn-search").prop("disabled", false);
+                    group = data.groupName;
+                    remoteFileName = data.remoteFileName;
+                    var url = "http://192.100.2.39:8012/onlinePreview?url=http://192.100.2.8:80/" + group + "/" + encodeURIComponent(remoteFileName);
+                    var winHeight = window.document.documentElement.clientHeight - 10;
+                    window.open(url, "_blank", "height=" + winHeight +
+                        ",top=80,left=180,toolbar=no, menubar=no, scrollbars=yes, resizable=yes");
+                }
+            });
+        }
+    </script>
+</head>
+
 <body>
 
 <h1>FastDFS文件上传</h1>
@@ -18,19 +41,22 @@
     <input type="submit" value="上传"/>
 </form>
 <br/>
-<form method="POST" action="/delete" >
-    <input type="text" name="filename" placeholder="请输入文件名"/><br/>
+<form method="POST" action="/delete">
+    <!--group：<input type="text" name="group" placeholder="请输入组名"/>-->
+    文件名：<input type="text" name="filename" placeholder="请输入文件名"/><br/>
     <input type="submit" value="删除"/>
 </form>
 <br/>
 
-<form method="GET" action="/downFile" >
-    <input type="text" name="filename" placeholder="请输入文件名"/><br/>
+<form method="GET" action="/downFile">
+    <!--group：<input type="text" name="group" placeholder="请输入组名"/>-->
+    文件名：<input type="text" name="filename" placeholder="请输入文件名"/><br/>
     <input type="submit" value="下载"/>
 </form>
 <br/>
 
-<input type="text" name="pro" id="pro" placeholder="请输入文件名"/><br/>
+<!--group：<input type="text" name="group" id="group" placeholder="请输入组名"/>-->
+文件名：<input type="text" name="pro" id="pro" placeholder="请输入文件名"/><br/>
 <button onclick="f()">预览</button>
 
 </body>

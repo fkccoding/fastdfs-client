@@ -15,9 +15,15 @@ import org.springframework.stereotype.Service;
 public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> implements FileInfoService {
     @Autowired
     FileInfoMapper fileInfoMapper;
+
     @Override
     public FileInfo findFileByName(String filename) {
         FileInfo fileInfo = fileInfoMapper.findFileByName(filename);
         return fileInfo;
+    }
+
+    @Override
+    public void deleteByFileName(String filename){
+        fileInfoMapper.deleteByFileName(filename);
     }
 }

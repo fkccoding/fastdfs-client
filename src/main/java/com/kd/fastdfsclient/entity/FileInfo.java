@@ -15,16 +15,18 @@ public class FileInfo {
     String groupName;
     String remoteFileName;
     Date uploadDate;
+    String fileSize;
     double version;
 
     public FileInfo() {
     }
 
-    public FileInfo(String fileName, String groupName, String remoteFileName, Date uploadDate, double version) {
+    public FileInfo(String fileName, String groupName, String remoteFileName, Date uploadDate, String fileSize, double version) {
         this.fileName = fileName;
         this.groupName = groupName;
         this.remoteFileName = remoteFileName;
         this.uploadDate = uploadDate;
+        this.fileSize = fileSize;
         this.version = version;
     }
 }
