@@ -2,6 +2,7 @@ package com.kd.fastdfsclient.entity;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.util.Date;
 
 
@@ -10,7 +11,7 @@ import java.util.Date;
  * @Date: 2019/3/26 11:02
  */
 @Data
-public class FileInfo {
+public class FileInfo implements Serializable {
     String fileName;
     String groupName;
     String remoteFileName;
