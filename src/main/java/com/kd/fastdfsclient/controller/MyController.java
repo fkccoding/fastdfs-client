@@ -1,8 +1,12 @@
 package com.kd.fastdfsclient.controller;
 
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kd.fastdfsclient.entity.FileInfo;
 import com.kd.fastdfsclient.fastdfs.FastDFSClient;
 import com.kd.fastdfsclient.fastdfs.FastDFSFile;
+import com.kd.fastdfsclient.mapper.FileInfoMapper;
 import com.kd.fastdfsclient.service.FileInfoService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,6 +26,7 @@ import java.io.OutputStream;
 import java.math.BigDecimal;
 import java.net.URLEncoder;
 import java.util.Date;
+import java.util.List;
 
 @Controller
 public class MyController {
@@ -29,6 +34,9 @@ public class MyController {
 
     @Autowired
     FileInfoService fileInfoService;
+
+    @Autowired
+    FileInfoMapper fileInfoMapper;
 
     @GetMapping("/")
     public String index() {
@@ -122,5 +130,21 @@ public class MyController {
                 e.printStackTrace();
             }
         }
+    }
+
+    /**
+     *
+     * @param current 当前的页数
+     * @param size 每页的大小
+     * @return
+     */
+    @ResponseBody
+    @GetMapping("/listPage")
+    public List<FileInfo> listPage(long current, long size){
+        IPage<FileInfo> fileInfoIPage = fileInfoMapper.selectPage(
+                new Page<>(current, size),
+                new QueryWrapper<FileInfo>().orderByAsc("upload_date")
+        );
+        return fileInfoIPage.getRecords();
     }
 }
