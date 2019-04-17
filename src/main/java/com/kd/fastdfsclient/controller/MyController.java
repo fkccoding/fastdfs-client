@@ -85,7 +85,8 @@ public class MyController {
     public FileInfo findByName(String filename){
         return fileInfoService.findFileByName(filename);
     }
-    @PostMapping("/delete")
+
+    @GetMapping("/delete")
     public String delete(@RequestParam("filename") String filename,
                          RedirectAttributes redirectAttributes) throws Exception {
         FileInfo fileByName = fileInfoService.findFileByName(filename);
