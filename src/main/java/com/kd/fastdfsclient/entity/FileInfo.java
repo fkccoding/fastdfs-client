@@ -17,17 +17,21 @@ public class FileInfo implements Serializable {
     String remoteFileName;
     Date uploadDate;
     String fileSize;
+    Long realSize;
     double version;
+    String operator;
 
     public FileInfo() {
     }
 
-    public FileInfo(String fileName, String groupName, String remoteFileName, Date uploadDate, String fileSize, double version) {
+    public FileInfo(String fileName, String groupName, String remoteFileName, Date uploadDate, String fileSize, Long realSize, double version, String operator) {
         this.fileName = fileName;
         this.groupName = groupName;
         this.remoteFileName = remoteFileName;
         this.uploadDate = uploadDate;
         this.fileSize = fileSize;
+        this.realSize = realSize;
         this.version = version;
+        this.operator = operator;
     }
 }

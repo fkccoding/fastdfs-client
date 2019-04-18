@@ -8,6 +8,8 @@ import com.kd.fastdfsclient.fastdfs.FastDFSClient;
 import com.kd.fastdfsclient.fastdfs.FastDFSFile;
 import com.kd.fastdfsclient.mapper.FileInfoMapper;
 import com.kd.fastdfsclient.service.FileInfoService;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,7 @@ import java.util.Date;
 import java.util.List;
 
 @Controller
+@Api(tags = "fileController", description = "文件系统后台管理")
 public class MyController {
     private static Logger logger = LoggerFactory.getLogger(MyController.class);
 
@@ -47,6 +50,7 @@ public class MyController {
     public String singleFileUpload(@RequestParam("file") MultipartFile file,
                                    RedirectAttributes redirectAttributes) {
         double fileSize = file.getSize();
+        long realSize = file.getSize();
         String hFileSize = "";
         // count file size
         if (fileSize > 1024 && fileSize / 1024 <= 1024) {
@@ -64,14 +68,15 @@ public class MyController {
             redirectAttributes.addFlashAttribute("message", "Please select a file to upload");
             return "redirect:status";
         } else if (fileByName != null) {
-            redirectAttributes.addFlashAttribute("message", "文件名重复，请重新上传！");
+            redirectAttributes.addFlashAttribute("message", "error");
             return "redirect:status";
         }
         try {
             // Get the file and save it somewhere
             String[] strings = FastDFSClient.saveFile(file);
             String path = strings[0];
-            FileInfo fileInfo = new FileInfo(filename, strings[1], strings[2], new Date(),hFileSize, 1.0);
+            FileInfo fileInfo = new FileInfo(filename, strings[1], strings[2], new Date(),hFileSize, realSize,
+                    1.0, "方程");
             fileInfoService.save(fileInfo);
             redirectAttributes.addFlashAttribute("message",
                     "You successfully uploaded '" + file.getOriginalFilename() + "'");
@@ -136,15 +141,25 @@ public class MyController {
      *
      * @param current 当前的页数
      * @param size 每页的大小
-     * @return
+     * @return 文件信息列表
      */
+    @ApiOperation("分页获取文件信息")
     @ResponseBody
     @GetMapping("/listPage")
-    public List<FileInfo> listPage(long current, long size){
+    public List<FileInfo> listPage(@RequestParam(value = "current",defaultValue = "1") long current,
+                                   @RequestParam(value = "size", defaultValue = "10") long size,
+                                    @RequestParam(value = "order",defaultValue = "upload_date") String order,
+                                    @RequestParam(value = "asc",defaultValue = "true") boolean asc){
         IPage<FileInfo> fileInfoIPage = fileInfoMapper.selectPage(
                 new Page<>(current, size),
-                new QueryWrapper<FileInfo>().orderByAsc("upload_date")
+                new QueryWrapper<FileInfo>().orderByAsc(order)
         );
+        if (!asc) {
+            fileInfoIPage = fileInfoMapper.selectPage(
+                    new Page<>(current, size),
+                    new QueryWrapper<FileInfo>().orderByDesc(order)
+            );
+        }
         return fileInfoIPage.getRecords();
     }
 }
