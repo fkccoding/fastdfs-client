@@ -10,6 +10,8 @@ import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 /**
  * @Author: www.chuckfang.top
  * @Date: 2019/3/26 11:13
@@ -21,14 +23,44 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     FileInfoMapper fileInfoMapper;
 
     @Override
-    @Cached(name = "FileInfoService.getUserById",expire = 3600)
+    @Cached(name = "FileInfoService.getUserById", expire = 3600)
     public FileInfo findFileByName(String filename) {
         FileInfo fileInfo = fileInfoMapper.findFileByName(filename);
         return fileInfo;
     }
 
     @Override
-    public void deleteByFileName(String filename){
+    public void deleteByFileName(String filename) {
         fileInfoMapper.deleteByFileName(filename);
+    }
+
+    @Override
+    public int selectCountByREGEXP(String suffix, boolean other) {
+        int count = 0;
+        if (!other) {
+            count = fileInfoMapper.selectCountByREGEXP(suffix,"");
+        } else {
+            count = fileInfoMapper.selectCountByREGEXP(suffix,"NOT");
+        }
+        return count;
+    }
+
+    @Override
+    public List<FileInfo> selectListByREGEXP(String suffix, boolean other, long current, long size, String order, boolean asc) {
+        List<FileInfo> fileInfoList;
+        if (!other) {
+            if (asc) {
+                fileInfoList = fileInfoMapper.selectListByREGEXP(suffix, (current - 1) * size, size, order,"", "ASC");
+            } else {
+                fileInfoList = fileInfoMapper.selectListByREGEXP(suffix, (current - 1) * size, size, order,"", "DESC");
+            }
+        } else {
+            if (asc) {
+                fileInfoList = fileInfoMapper.selectListByREGEXP(suffix, (current - 1) * size, size, order,"NOT", "ASC");
+            } else {
+                fileInfoList = fileInfoMapper.selectListByREGEXP(suffix, (current - 1) * size, size, order,"NOT", "DESC");
+            }
+        }
+        return fileInfoList;
     }
 }
