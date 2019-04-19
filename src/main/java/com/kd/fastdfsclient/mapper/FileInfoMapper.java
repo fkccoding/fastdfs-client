@@ -2,7 +2,6 @@ package com.kd.fastdfsclient.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.kd.fastdfsclient.entity.FileInfo;
-import org.apache.ibatis.annotations.Mapper;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
@@ -24,5 +23,9 @@ public interface FileInfoMapper extends BaseMapper<FileInfo> {
     List<FileInfo> selectListByREGEXP(@Param("suffix") String suffix, @Param("current") long current,
                                       @Param("size") long size, @Param("order") String order,
                                       @Param("other") String other, @Param("sequence") String sequence);
+
+    List<FileInfo> selectListForChinese(@Param("suffix") String suffix, @Param("current") long current,
+                                        @Param("size") long size, @Param("order") String order,
+                                        @Param("other") String other, @Param("sequence") String sequence);
 
 }

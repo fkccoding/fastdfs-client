@@ -23,11 +23,7 @@ public class FastdfsClientApplicationTests {
 
     @Test
     public void testTSQL11() {
-//        List<FileInfo> cloud = fileInfoMapper.selectListByNOTREGEXPDESC("jpg|jpeg", 0, 5, "upload_date");
-//        System.out.println(cloud);
 
-        int i = fileInfoMapper.selectCountByREGEXP("jpg|jpeg", "");
-        System.out.println(i);
     }
 
 }

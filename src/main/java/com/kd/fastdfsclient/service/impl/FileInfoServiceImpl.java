@@ -6,8 +6,6 @@ import com.kd.fastdfsclient.entity.FileInfo;
 import com.kd.fastdfsclient.mapper.FileInfoMapper;
 import com.kd.fastdfsclient.service.FileInfoService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CachePut;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -36,7 +34,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
 
     @Override
     public int selectCountByREGEXP(String suffix, boolean other) {
-        int count = 0;
+        int count;
         if (!other) {
             count = fileInfoMapper.selectCountByREGEXP(suffix,"");
         } else {
@@ -48,19 +46,45 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     @Override
     public List<FileInfo> selectListByREGEXP(String suffix, boolean other, long current, long size, String order, boolean asc) {
         List<FileInfo> fileInfoList;
-        if (!other) {
-            if (asc) {
-                fileInfoList = fileInfoMapper.selectListByREGEXP(suffix, (current - 1) * size, size, order,"", "ASC");
+        if ("file_name".equals(order) || "operator".equals(order)) {
+            if (!other) {
+                if (asc) {
+                    fileInfoList = fileInfoMapper.selectListForChinese(suffix, (current - 1) * size, size, order,
+                            "", "ASC");
+                } else {
+                    fileInfoList = fileInfoMapper.selectListForChinese(suffix, (current - 1) * size, size, order,
+                            "", "DESC");
+                }
             } else {
-                fileInfoList = fileInfoMapper.selectListByREGEXP(suffix, (current - 1) * size, size, order,"", "DESC");
+                if (asc) {
+                    fileInfoList = fileInfoMapper.selectListForChinese(suffix, (current - 1) * size, size, order,
+                            "NOT", "ASC");
+                } else {
+                    fileInfoList = fileInfoMapper.selectListForChinese(suffix, (current - 1) * size, size, order,
+                            "NOT", "DESC");
+                }
             }
         } else {
-            if (asc) {
-                fileInfoList = fileInfoMapper.selectListByREGEXP(suffix, (current - 1) * size, size, order,"NOT", "ASC");
+            if (!other) {
+                if (asc) {
+                    fileInfoList = fileInfoMapper.selectListByREGEXP(suffix, (current - 1) * size, size, order,
+                            "", "ASC");
+                } else {
+                    fileInfoList = fileInfoMapper.selectListByREGEXP(suffix, (current - 1) * size, size, order,
+                            "", "DESC");
+                }
             } else {
-                fileInfoList = fileInfoMapper.selectListByREGEXP(suffix, (current - 1) * size, size, order,"NOT", "DESC");
+                if (asc) {
+                    fileInfoList = fileInfoMapper.selectListByREGEXP(suffix, (current - 1) * size, size, order,
+                            "NOT", "ASC");
+                } else {
+                    fileInfoList = fileInfoMapper.selectListByREGEXP(suffix, (current - 1) * size, size, order,
+                            "NOT", "DESC");
+                }
             }
         }
+
         return fileInfoList;
     }
+
 }

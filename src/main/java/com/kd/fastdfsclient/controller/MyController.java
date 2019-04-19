@@ -18,7 +18,6 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import javax.servlet.http.HttpServletResponse;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -55,8 +54,7 @@ public class MyController {
     @PostMapping("/upload")
     @ResponseBody
     public Map singleFileUpload(@RequestParam("file") MultipartFile file,
-                                RedirectAttributes redirectAttributes,
-                                HttpServletResponse response) {
+                                RedirectAttributes redirectAttributes) {
         Map msg = new HashMap<String, Integer>();
         long realSize = file.getSize();
         String filename = file.getOriginalFilename();
@@ -171,30 +169,12 @@ public class MyController {
                         @RequestParam(value = "order", defaultValue = "upload_date") String order,
                         @RequestParam(value = "asc", defaultValue = "true") boolean asc) {
         Map map = new HashMap();
-        IPage<FileInfo> fileInfoIPage;
         List<FileInfo> fileInfoList;
         int count;
-        if ("all".equals(category)) {
-            if (asc) {
-                fileInfoIPage = fileInfoMapper.selectPage(
-                        new Page<>(current, size),
-                        new QueryWrapper<FileInfo>().orderByAsc(order)
-                );
-            } else {
-                fileInfoIPage = fileInfoMapper.selectPage(
-                        new Page<>(current, size),
-                        new QueryWrapper<FileInfo>().orderByDesc(order)
-                );
-            }
-            fileInfoList = fileInfoIPage.getRecords();
-            count = fileInfoMapper.selectCount(new QueryWrapper<>());
-        } else {
-            String suffix = (String) categoryToSuffix(category).get("suffix");
-            boolean other = (boolean) categoryToSuffix(category).get("other");
-            count = fileInfoService.selectCountByREGEXP(suffix, other);
-            fileInfoList = fileInfoService.selectListByREGEXP(suffix, other, current, size, order, asc);
-        }
-
+        String suffix = (String) categoryToSuffix(category).get("suffix");
+        boolean other = (boolean) categoryToSuffix(category).get("other");
+        count = fileInfoService.selectCountByREGEXP(suffix, other);
+        fileInfoList = fileInfoService.selectListByREGEXP(suffix, other, current, size, order, asc);
         map.put("total", count);
         map.put("fileList", fileInfoList);
         return map;
@@ -220,6 +200,8 @@ public class MyController {
             suffix = ".avi|.mp4|.rmvb|.mpeg|.mov|.mkv|.wmv|.flv|.webm";
         } else if ("music".equals(category)) {
             suffix = ".mp3|.aac|.wav|.flav|.ape|.alac";
+        } else if ("all".equals(category)) {
+            suffix = ".";
         } else {
             suffix = ".jpg|.bmp|.gif|.ico|.pcx|.jpeg|.tif|.png|.raw|.tga|" +
                     ".doc|.docx|.dot|.dotx|.dotm|.rtf|.xls|.xlsx|.ppt|.pptx|.txt|.pdf|" +
