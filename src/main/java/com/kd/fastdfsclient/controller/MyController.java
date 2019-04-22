@@ -22,10 +22,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @CrossOrigin(maxAge = 3600)     //解决跨域
 @Controller
@@ -112,18 +109,24 @@ public class MyController {
     @ApiOperation("单个或批量删除文件")
     @PostMapping("/delete")
     @ResponseBody
-    public String delete(@RequestBody Map<String,String[]> json,
-                      RedirectAttributes redirectAttributes) throws Exception {
+    public String delete(@RequestBody Map<String,String[]> json/*,
+                      RedirectAttributes redirectAttributes*/) throws Exception {
+//        System.out.println("json"+json);
         String[] fileNameList = json.get("fileNameList");
+//        System.out.println(Arrays.toString(fileNameList));
         for (int i = 0; i<fileNameList.length; i++) {
             String filename = fileNameList[i];
             FileInfo fileByName = fileInfoService.findFileByName(filename);
-            String message = FastDFSClient.deleteFile(fileByName.getGroupName(), fileByName.getRemoteFileName());
-            fileInfoService.deleteByFileName(filename);
-            redirectAttributes.addFlashAttribute("message", message);
+            if (null == fileByName) {
+                return "file not found";
+            } else {
+                FastDFSClient.deleteFile(fileByName.getGroupName(), fileByName.getRemoteFileName());
+                fileInfoService.deleteByFileName(filename);
+                //redirectAttributes.addFlashAttribute("message", message);
+            }
         }
         //return "redirect:status";
-        return "sucess";
+        return "success";
     }
 
     @ApiOperation("下载文件")
@@ -167,33 +170,33 @@ public class MyController {
                         @RequestParam(value = "current", defaultValue = "1") long current,
                         @RequestParam(value = "size", defaultValue = "10") long size,
                         @RequestParam(value = "order", defaultValue = "upload_date") String order,
-                        @RequestParam(value = "asc", defaultValue = "true") boolean asc) {
+                        @RequestParam(value = "asc", defaultValue = "true") boolean asc,
+                        @RequestParam(value = "fileName",defaultValue = "") String fileName) {
         Map map = new HashMap();
         List<FileInfo> fileInfoList;
         int count;
-        String suffix = (String) categoryToSuffix(category).get("suffix");
-        boolean other = (boolean) categoryToSuffix(category).get("other");
-        count = fileInfoService.selectCountByREGEXP(suffix, other);
-        fileInfoList = fileInfoService.selectListByREGEXP(suffix, other, current, size, order, asc);
+        // 如果有非空文件名传过来，说明使用模糊搜索的功能，否则使用分类功能
+        if (null != fileName && !"".equals(fileName)) {
+            count = fileInfoMapper.searchCount("%" + fileName + "%");
+            fileInfoList = fileInfoService.searchPage("%" + fileName + "%", (current - 1) * size, size, order, asc);
+        } else {
+            String suffix = (String) categoryToSuffix(category).get("suffix");
+            boolean other = (boolean) categoryToSuffix(category).get("other");
+            count = fileInfoService.selectCountByREGEXP(suffix, other);
+            fileInfoList = fileInfoService.selectListByREGEXP(suffix, other, current, size, order, asc);
+        }
+
         map.put("total", count);
         map.put("fileList", fileInfoList);
         return map;
     }
-
-    @ApiOperation("多条件搜索文件")
-    @GetMapping("/search")
-    @ResponseBody
-    public List<FileInfo> search(String fileName) {
-        return fileInfoMapper.selectList(new QueryWrapper<FileInfo>().like("file_name", fileName));
-    }
-
 
     public Map<String, Object> categoryToSuffix(String category) {
         Map map = new HashMap<String, Object>();
         String suffix;
         boolean other = false;
         if ("image".equals(category)) {
-            suffix = ".jpg|.bmp|.gif|.ico|.pcx|.jpeg|.tif|.png|.raw|.tga";
+            suffix = ".jpg|.bmp|.gif|.ico|.pcx|.jpeg|.tif|.png|.raw|.tga|.svg|.webp";
         } else if ("doc".equals(category)) {
             suffix = ".doc|.docx|.dot|.dotx|.dotm|.rtf|.xls|.xlsx|.ppt|.pptx|.txt|.pdf";
         } else if ("video".equals(category)) {
@@ -203,7 +206,7 @@ public class MyController {
         } else if ("all".equals(category)) {
             suffix = ".";
         } else {
-            suffix = ".jpg|.bmp|.gif|.ico|.pcx|.jpeg|.tif|.png|.raw|.tga|" +
+            suffix = ".jpg|.bmp|.gif|.ico|.pcx|.jpeg|.tif|.png|.raw|.tga|.svg|.webp" +
                     ".doc|.docx|.dot|.dotx|.dotm|.rtf|.xls|.xlsx|.ppt|.pptx|.txt|.pdf|" +
                     ".avi|.mp4|.rmvb|.mpeg|.mov|.mkv|.wmv|.flv|.webm|" +
                     ".mp3|.aac|.wav|.flav|.ape|.alac";

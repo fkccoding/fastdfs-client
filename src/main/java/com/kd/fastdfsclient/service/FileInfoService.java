@@ -18,4 +18,5 @@ public interface FileInfoService extends IService<FileInfo> {
 
     List<FileInfo> selectListByREGEXP(String suffix, boolean other, long current, long size, String order, boolean asc);
 
+    List<FileInfo> searchPage(String fileName, long current, long size, String order, boolean asc);
 }

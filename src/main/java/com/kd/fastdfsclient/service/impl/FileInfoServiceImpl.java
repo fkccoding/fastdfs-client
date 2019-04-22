@@ -58,10 +58,10 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
             } else {
                 if (asc) {
                     fileInfoList = fileInfoMapper.selectListForChinese(suffix, (current - 1) * size, size, order,
-                            "NOT", "ASC");
+                             "NOT","ASC");
                 } else {
                     fileInfoList = fileInfoMapper.selectListForChinese(suffix, (current - 1) * size, size, order,
-                            "NOT", "DESC");
+                            "NOT","DESC");
                 }
             }
         } else {
@@ -76,14 +76,34 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
             } else {
                 if (asc) {
                     fileInfoList = fileInfoMapper.selectListByREGEXP(suffix, (current - 1) * size, size, order,
-                            "NOT", "ASC");
+                            "NOT","ASC");
                 } else {
                     fileInfoList = fileInfoMapper.selectListByREGEXP(suffix, (current - 1) * size, size, order,
-                            "NOT", "DESC");
+                            "NOT","DESC");
                 }
             }
         }
 
+        return fileInfoList;
+    }
+
+    @Override
+    public List<FileInfo> searchPage(String fileName, long current, long size, String order, boolean asc) {
+        List<FileInfo> fileInfoList;
+        // 如果是按中文排序
+        if ("file_name".equals(order) || "operator".equals(order)) {
+            if (asc) {
+                fileInfoList = fileInfoMapper.searchPageForChinese(fileName, current, size, order, "ASC");
+            } else {
+                fileInfoList = fileInfoMapper.searchPageForChinese(fileName, current, size, order, "DESC");
+            }
+        } else {
+            if (asc) {
+                fileInfoList = fileInfoMapper.searchPage(fileName, current, size, order, "ASC");
+            } else {
+                fileInfoList = fileInfoMapper.searchPage(fileName, current, size, order, "DESC");
+            }
+        }
         return fileInfoList;
     }
 

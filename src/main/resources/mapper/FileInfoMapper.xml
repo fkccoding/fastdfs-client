@@ -15,14 +15,28 @@
     </select>
 
     <select id="selectListByREGEXP" resultType="com.kd.fastdfsclient.entity.FileInfo">
-        SELECT * FROM `file_info` WHERE file_name REGEXP #{suffix} ${other} ORDER BY ${order} ${sequence}
+        SELECT * FROM `file_info` WHERE file_name ${other} REGEXP #{suffix} ORDER BY ${order} ${sequence}
                                                                                      LIMIT ${current}, ${size};
     </select>
     
     <select id="selectListForChinese" resultType="com.kd.fastdfsclient.entity.FileInfo">
-        SELECT * FROM `file_info`  WHERE file_name REGEXP #{suffix} ${other} ORDER BY CONVERT(${order} USING gbk)
+        SELECT * FROM `file_info`  WHERE file_name ${other} REGEXP #{suffix} ORDER BY CONVERT(${order} USING gbk)
                                                                                       COLLATE gbk_chinese_ci ${sequence}
                                                                                       LIMIT ${current}, ${size};
+    </select>
+
+    <select id="searchCount" resultType="int">
+        SELECT count(1) FROM `file_info` WHERE file_name LIKE #{fileName};
+    </select>
+
+    <select id="searchPage" resultType="com.kd.fastdfsclient.entity.FileInfo">
+        SELECT * FROM `file_info` WHERE file_name LIKE #{fileName} ORDER BY ${order} ${sequence} LIMIT ${current}, ${size};
+    </select>
+
+    <select id="searchPageForChinese" resultType="com.kd.fastdfsclient.entity.FileInfo">
+        SELECT * FROM `file_info` WHERE file_name LIKE #{fileName} ORDER BY CONVERT(${order} USING gbk)
+                                                                            COLLATE gbk_chinese_ci ${sequence}
+                                                                            LIMIT ${current}, ${size};
     </select>
 
 </mapper>
