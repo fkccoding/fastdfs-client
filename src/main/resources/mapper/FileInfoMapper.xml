@@ -35,7 +35,7 @@
 
     <select id="searchPageForChinese" resultType="com.kd.fastdfsclient.entity.FileInfo">
         SELECT * FROM `file_info` WHERE file_name LIKE #{fileName} ORDER BY CONVERT(${order} USING gbk)
-                                                                            COLLATE gbk_chinese_ci ${sequence}
+                                                                            COLLATE gbk_c hinese_ci ${sequence}
                                                                             LIMIT ${current}, ${size};
     </select>
 

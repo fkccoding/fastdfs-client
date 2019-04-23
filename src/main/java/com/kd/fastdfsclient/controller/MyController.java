@@ -58,12 +58,12 @@ public class MyController {
         FileInfo fileByName = fileInfoService.findFileByName(filename);
         if (file.isEmpty()) {
             redirectAttributes.addFlashAttribute("message", "Please select a file to upload");
-            msg.put("msg", 1);
+            msg.put("msg", 4);
             return msg;
             //return "redirect:status";
         } else if (fileByName != null) {
             redirectAttributes.addFlashAttribute("message", "文件名重复");
-            msg.put("msg", 2);
+            msg.put("msg", 1);
             return msg;
             //return "redirect:status";
         }
@@ -80,12 +80,18 @@ public class MyController {
             hFileSize = bd.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue() + "MB";
         }
 
+        // 随机选择一个operator
+        String[] operators = {"方程","武瑞敏","魏健东","向凌吉","江天","汪垚","曲广昊","崔志臣","卢荟芳","梅峥",
+                "张飞","司小贺","王鑫","海军","杨喻强","王梓任","尚丽志","高洪伟","王旭伟","栾希鹏"};
+        Random random = new Random();//默认构造方法
+        int i = random.nextInt(operators.length);
+        String operator = operators[i];
         try {
             // Get the file and save it somewhere
             String[] strings = FastDFSClient.saveFile(file);
             String path = strings[0];
             FileInfo fileInfo = new FileInfo(filename, strings[1], strings[2], new Date(), hFileSize, realSize,
-                    1.0, "方程");
+                    1.0, operator);
             fileInfoService.save(fileInfo);
             redirectAttributes.addFlashAttribute("message",
                     "You successfully uploaded '" + file.getOriginalFilename() + "'");
@@ -93,6 +99,7 @@ public class MyController {
                     "file path url '" + path + "'");
         } catch (Exception e) {
             logger.error("upload file failed", e);
+            msg.put("msg", 2);
         }
 
         msg.put("msg", 3);
@@ -163,7 +170,7 @@ public class MyController {
      * @param size    每页的大小
      * @return 文件信息列表
      */
-    @ApiOperation("分页获取文件分类信息")
+    @ApiOperation("分页获取文件分类信息或按文件名模糊搜索")
     @GetMapping("/listPage")
     @ResponseBody
     public Map listPage(@RequestParam(value = "category", defaultValue = "all") String category,
@@ -202,14 +209,14 @@ public class MyController {
         } else if ("video".equals(category)) {
             suffix = ".avi|.mp4|.rmvb|.mpeg|.mov|.mkv|.wmv|.flv|.webm";
         } else if ("music".equals(category)) {
-            suffix = ".mp3|.aac|.wav|.flav|.ape|.alac";
+            suffix = ".mp3|.aac|.wav|.flav|.ape|.alac|.flac";
         } else if ("all".equals(category)) {
             suffix = ".";
         } else {
             suffix = ".jpg|.bmp|.gif|.ico|.pcx|.jpeg|.tif|.png|.raw|.tga|.svg|.webp" +
                     ".doc|.docx|.dot|.dotx|.dotm|.rtf|.xls|.xlsx|.ppt|.pptx|.txt|.pdf|" +
                     ".avi|.mp4|.rmvb|.mpeg|.mov|.mkv|.wmv|.flv|.webm|" +
-                    ".mp3|.aac|.wav|.flav|.ape|.alac";
+                    ".mp3|.aac|.wav|.flav|.ape|.alac|.flac";
             other = true;
         }
         map.put("suffix", suffix);
