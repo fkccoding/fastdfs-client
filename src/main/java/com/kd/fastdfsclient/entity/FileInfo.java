@@ -1,5 +1,6 @@
 package com.kd.fastdfsclient.entity;
 
+import com.baomidou.mybatisplus.annotation.TableId;
 import lombok.Data;
 
 import java.io.Serializable;
@@ -12,6 +13,7 @@ import java.util.Date;
  */
 @Data
 public class FileInfo implements Serializable {
+    @TableId
     String fileName;
     String groupName;
     String remoteFileName;
@@ -22,6 +24,10 @@ public class FileInfo implements Serializable {
     String operator;
 
     public FileInfo() {
+    }
+
+    public FileInfo(String fileName) {
+        this.fileName = fileName;
     }
 
     public FileInfo(String fileName, String groupName, String remoteFileName, Date uploadDate, String fileSize, Long realSize, double version, String operator) {

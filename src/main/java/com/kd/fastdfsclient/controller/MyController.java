@@ -1,8 +1,6 @@
 package com.kd.fastdfsclient.controller;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.kd.fastdfsclient.entity.FileInfo;
 import com.kd.fastdfsclient.fastdfs.FastDFSClient;
 import com.kd.fastdfsclient.mapper.FileInfoMapper;
@@ -12,11 +10,10 @@ import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
@@ -25,7 +22,7 @@ import java.math.BigDecimal;
 import java.util.*;
 
 @CrossOrigin(maxAge = 3600)     //解决跨域
-@Controller
+@RestController
 @Api(tags = "fileController", description = "文件系统后台管理")
 public class MyController {
     private static Logger logger = LoggerFactory.getLogger(MyController.class);
@@ -36,40 +33,62 @@ public class MyController {
     @Autowired
     FileInfoMapper fileInfoMapper;
 
-    @GetMapping("/")
-    public String index() {
-        return "do";
-    }
+    private Map<String, String> operators = new HashMap<>();
 
-    @GetMapping("/status")
-    public String uploadStatus() {
-        return "status";
-    }
+//    private String tempFileName;
 
+    MyController(){
+        operators.put("192.100.1.210", "曲广昊");
+        operators.put("192.100.1.211", "方程");
+        operators.put("192.100.1.213", "崔志臣");
+        operators.put("192.100.1.230", "武瑞敏");
+        operators.put("192.100.1.231", "汪垚");
+        operators.put("192.100.1.232", "向凌吉");
+        operators.put("192.100.1.233", "江天");
+        operators.put("192.100.1.237", "卢荟芳");
+        operators.put("192.100.1.123", "魏健东");
+    }
 
     @ApiOperation("上传文件")
     @PostMapping("/upload")
-    @ResponseBody
-    public Map singleFileUpload(@RequestParam("file") MultipartFile file,
-                                RedirectAttributes redirectAttributes) {
-        Map msg = new HashMap<String, Integer>();
+    public Map<String, Integer> singleFileUpload(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+        Map<String, Integer> msg = new HashMap<>();
+        String fileName = file.getOriginalFilename();
         long realSize = file.getSize();
-        String filename = file.getOriginalFilename();
-        FileInfo fileByName = fileInfoService.findFileByName(filename);
-        if (file.isEmpty()) {
-            redirectAttributes.addFlashAttribute("message", "Please select a file to upload");
-            msg.put("msg", 4);
-            return msg;
-            //return "redirect:status";
-        } else if (fileByName != null) {
-            redirectAttributes.addFlashAttribute("message", "文件名重复");
-            msg.put("msg", 1);
-            return msg;
-            //return "redirect:status";
+
+        synchronized (this) {
+            if (fileInfoService.findFileByName(fileName) != null) {
+                msg.put("msg", 1);
+                return msg;
+            }
+            fileInfoMapper.insert(new FileInfo(fileName));
         }
 
         // count file size for human
-        double fileSize = (double) realSize;
+        String hFileSize = getHumanSize(realSize);
+        String operator = operators.get(request.getRemoteAddr());
+        if (null == operator) {     //If the user's IP is illegal
+            operator = "Hacker";
+        }
+        try {
+            // Get the file and save it somewhere
+            String[] strings = FastDFSClient.saveFile(file);
+            String path = strings[0];
+            FileInfo fileInfo = new FileInfo(fileName, strings[1], strings[2], new Date(), hFileSize, realSize, 1.0, operator);
+//            fileInfoService.save(fileInfo);
+            fileInfoMapper.updateById(fileInfo);
+        } catch (Exception e) {
+            fileInfoMapper.deleteByFileName(fileName);
+            logger.error("upload file failed", e);
+            msg.put("msg", 2);
+            return msg;
+        }
+        msg.put("msg", 3);
+        return msg;
+    }
+
+    private String getHumanSize(double realSize) {
+        double fileSize = realSize;
         String hFileSize = fileSize + "B";
         if (fileSize > 1024 && fileSize / 1024 <= 1024) {
             BigDecimal bd = new BigDecimal(fileSize / 1024);
@@ -79,49 +98,21 @@ public class MyController {
             BigDecimal bd = new BigDecimal(fileSize / 1024 / 1024);
             hFileSize = bd.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue() + "MB";
         }
-
-        // 随机选择一个operator
-        String[] operators = {"方程","武瑞敏","魏健东","向凌吉","江天","汪垚","曲广昊","崔志臣","卢荟芳","梅峥",
-                "张飞","司小贺","王鑫","海军","杨喻强","王梓任","尚丽志","高洪伟","王旭伟","栾希鹏"};
-        Random random = new Random();//默认构造方法
-        int i = random.nextInt(operators.length);
-        String operator = operators[i];
-        try {
-            // Get the file and save it somewhere
-            String[] strings = FastDFSClient.saveFile(file);
-            String path = strings[0];
-            FileInfo fileInfo = new FileInfo(filename, strings[1], strings[2], new Date(), hFileSize, realSize,
-                    1.0, operator);
-            fileInfoService.save(fileInfo);
-            redirectAttributes.addFlashAttribute("message",
-                    "You successfully uploaded '" + file.getOriginalFilename() + "'");
-            redirectAttributes.addFlashAttribute("path",
-                    "file path url '" + path + "'");
-        } catch (Exception e) {
-            logger.error("upload file failed", e);
-            msg.put("msg", 2);
-        }
-
-        msg.put("msg", 3);
-        return msg;
-        //return "redirect:status";
+        return hFileSize;
     }
 
     @GetMapping("/findByName")
-    @ResponseBody
     public FileInfo findByName(String filename) {
         return fileInfoService.findFileByName(filename);
     }
 
     @ApiOperation("单个或批量删除文件")
     @PostMapping("/delete")
-    @ResponseBody
-    public String delete(@RequestBody Map<String,String[]> json/*,
-                      RedirectAttributes redirectAttributes*/) throws Exception {
+    public String delete(@RequestBody Map<String, String[]> json) throws Exception {
 //        System.out.println("json"+json);
         String[] fileNameList = json.get("fileNameList");
 //        System.out.println(Arrays.toString(fileNameList));
-        for (int i = 0; i<fileNameList.length; i++) {
+        for (int i = 0; i < fileNameList.length; i++) {
             String filename = fileNameList[i];
             FileInfo fileByName = fileInfoService.findFileByName(filename);
             if (null == fileByName) {
@@ -129,10 +120,8 @@ public class MyController {
             } else {
                 FastDFSClient.deleteFile(fileByName.getGroupName(), fileByName.getRemoteFileName());
                 fileInfoService.deleteByFileName(filename);
-                //redirectAttributes.addFlashAttribute("message", message);
             }
         }
-        //return "redirect:status";
         return "success";
     }
 
@@ -157,6 +146,8 @@ public class MyController {
             e.printStackTrace();
         } finally {
             try {
+                assert input != null;
+                assert outputStream != null;
                 input.close();
                 outputStream.close();
             } catch (IOException e) {
@@ -172,14 +163,13 @@ public class MyController {
      */
     @ApiOperation("分页获取文件分类信息或按文件名模糊搜索")
     @GetMapping("/listPage")
-    @ResponseBody
-    public Map listPage(@RequestParam(value = "category", defaultValue = "all") String category,
-                        @RequestParam(value = "current", defaultValue = "1") long current,
-                        @RequestParam(value = "size", defaultValue = "10") long size,
-                        @RequestParam(value = "order", defaultValue = "upload_date") String order,
-                        @RequestParam(value = "asc", defaultValue = "true") boolean asc,
-                        @RequestParam(value = "fileName",defaultValue = "") String fileName) {
-        Map map = new HashMap();
+    public Map<String, Object> listPage(@RequestParam(value = "category", defaultValue = "all") String category,
+                                        @RequestParam(value = "current", defaultValue = "1") long current,
+                                        @RequestParam(value = "size", defaultValue = "10") long size,
+                                        @RequestParam(value = "order", defaultValue = "upload_date") String order,
+                                        @RequestParam(value = "asc", defaultValue = "true") boolean asc,
+                                        @RequestParam(value = "fileName", defaultValue = "") String fileName) {
+        Map<String, Object> map = new HashMap<>();
         List<FileInfo> fileInfoList;
         int count;
         // 如果有非空文件名传过来，说明使用模糊搜索的功能，否则使用分类功能
@@ -199,7 +189,7 @@ public class MyController {
     }
 
     public Map<String, Object> categoryToSuffix(String category) {
-        Map map = new HashMap<String, Object>();
+        Map<String, Object> map = new HashMap<String, Object>();
         String suffix;
         boolean other = false;
         if ("image".equals(category)) {
