@@ -7,6 +7,7 @@ import com.kd.fastdfsclient.mapper.FileInfoMapper;
 import com.kd.fastdfsclient.service.FileInfoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import lombok.Cleanup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -117,7 +118,8 @@ public class MyController {
             if (null == fileByName) {
                 return "file not found";
             } else {
-                FastDFSClient.deleteFile(fileByName.getGroupName(), fileByName.getRemoteFileName());
+                String deleteFileMsg = FastDFSClient.deleteFile(fileByName.getGroupName(), fileByName.getRemoteFileName());
+                logger.info(deleteFileMsg);
                 fileInfoService.deleteByFileName(fileName);
             }
         }
@@ -132,10 +134,10 @@ public class MyController {
             logger.error("File not found!!!");
             return "File not found!!!";
         }
-        InputStream input = FastDFSClient.downFile(fileByName.getGroupName(), fileByName.getRemoteFileName());
+        @Cleanup InputStream input = FastDFSClient.downFile(fileByName.getGroupName(), fileByName.getRemoteFileName());
         int index;
         byte[] bytes = new byte[1024];
-        OutputStream outputStream = null;
+        @Cleanup OutputStream outputStream;
         try {
             response.setHeader("Content-type", "application/octet-stream");
 //            response.setHeader("Content-disposition", "attachment;fileName=" + URLEncoder.encode(filename,"UTF-8"));
@@ -147,15 +149,6 @@ public class MyController {
             }
         } catch (IOException e) {
             e.printStackTrace();
-        } finally {
-            try {
-                assert input != null;
-                assert outputStream != null;
-                input.close();
-                outputStream.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
         }
         logger.info("Join download queue");
         return "success!";
@@ -193,7 +186,7 @@ public class MyController {
         return map;
     }
 
-    public Map<String, Object> categoryToSuffix(String category) {
+    Map<String, Object> categoryToSuffix(String category) {
         Map<String, Object> map = new HashMap<String, Object>();
         String suffix;
         boolean other = false;
