@@ -10,9 +10,9 @@ import java.util.List;
  * @Date: 2019/3/26 11:12
  */
 public interface FileInfoService extends IService<FileInfo> {
-    FileInfo findFileByName(String filename);
+    FileInfo findFileByName(String fileName);
 
-    void deleteByFileName(String filename);
+    void deleteByFileName(String fileName);
 
     int selectCountByREGEXP(String suffix, boolean other);
 

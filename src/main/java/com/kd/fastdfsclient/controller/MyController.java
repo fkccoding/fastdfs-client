@@ -59,6 +59,7 @@ public class MyController {
         synchronized (this) {
             if (fileInfoService.findFileByName(fileName) != null) {
                 msg.put("msg", 1);
+                logger.info("The file name is occupied");
                 return msg;
             }
             fileInfoMapper.insert(new FileInfo(fileName));
@@ -109,17 +110,15 @@ public class MyController {
     @ApiOperation("单个或批量删除文件")
     @PostMapping("/delete")
     public String delete(@RequestBody Map<String, String[]> json) throws Exception {
-//        System.out.println("json"+json);
         String[] fileNameList = json.get("fileNameList");
-//        System.out.println(Arrays.toString(fileNameList));
         for (int i = 0; i < fileNameList.length; i++) {
-            String filename = fileNameList[i];
-            FileInfo fileByName = fileInfoService.findFileByName(filename);
+            String fileName = fileNameList[i];
+            FileInfo fileByName = fileInfoService.findFileByName(fileName);
             if (null == fileByName) {
                 return "file not found";
             } else {
                 FastDFSClient.deleteFile(fileByName.getGroupName(), fileByName.getRemoteFileName());
-                fileInfoService.deleteByFileName(filename);
+                fileInfoService.deleteByFileName(fileName);
             }
         }
         return "success";
@@ -127,8 +126,12 @@ public class MyController {
 
     @ApiOperation("下载文件")
     @GetMapping("/downFile")
-    public void downFile(String fileName, HttpServletResponse response) {
+    public String downFile(String fileName, HttpServletResponse response) {
         FileInfo fileByName = fileInfoService.findFileByName(fileName);
+        if (null == fileByName) {
+            logger.error("File not found!!!");
+            return "File not found!!!";
+        }
         InputStream input = FastDFSClient.downFile(fileByName.getGroupName(), fileByName.getRemoteFileName());
         int index;
         byte[] bytes = new byte[1024];
@@ -154,6 +157,8 @@ public class MyController {
                 e.printStackTrace();
             }
         }
+        logger.info("Join download queue");
+        return "success!";
     }
 
     /**

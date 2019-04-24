@@ -3,11 +3,11 @@
 <mapper namespace="com.kd.fastdfsclient.mapper.FileInfoMapper">
 
     <select id="findFileByName" parameterType="string" resultType="com.kd.fastdfsclient.entity.FileInfo" >
-        SELECT * FROM `file_info` WHERE file_name=#{filename};
+        SELECT * FROM `file_info` WHERE file_name=#{fileName};
     </select>
 
     <delete id="deleteByFileName" parameterType="string" >
-        DELETE FROM `file_info` WHERE file_name=#{filename};
+        DELETE FROM `file_info` WHERE file_name=#{fileName};
     </delete>
 
     <select id="selectCountByREGEXP"  parameterType="string" resultType="int">

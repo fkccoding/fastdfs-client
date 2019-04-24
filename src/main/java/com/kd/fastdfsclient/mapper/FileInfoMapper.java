@@ -14,9 +14,9 @@ import java.util.List;
 @Repository
 public interface FileInfoMapper extends BaseMapper<FileInfo> {
 
-    FileInfo findFileByName(String filename);
+    FileInfo findFileByName(String fileName);
 
-    void deleteByFileName(String filename);
+    void deleteByFileName(String fileName);
 
     int selectCountByREGEXP(@Param("suffix") String suffix, @Param("other") String other);
 

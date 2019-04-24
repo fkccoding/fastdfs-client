@@ -22,14 +22,14 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
 
     @Override
     @Cached(name = "FileInfoService.getUserById", expire = 3600)
-    public FileInfo findFileByName(String filename) {
-        FileInfo fileInfo = fileInfoMapper.findFileByName(filename);
+    public FileInfo findFileByName(String fileName) {
+        FileInfo fileInfo = fileInfoMapper.findFileByName(fileName);
         return fileInfo;
     }
 
     @Override
-    public void deleteByFileName(String filename) {
-        fileInfoMapper.deleteByFileName(filename);
+    public void deleteByFileName(String fileName) {
+        fileInfoMapper.deleteByFileName(fileName);
     }
 
     @Override
