@@ -21,7 +21,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
 
-@Data
 @CrossOrigin(maxAge = 3600)     //解决跨域
 @RestController
 @Api(tags = "fileController", description = "文件系统后台管理")
