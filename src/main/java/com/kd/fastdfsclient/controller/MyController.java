@@ -6,7 +6,8 @@ import com.kd.fastdfsclient.mapper.FileInfoMapper;
 import com.kd.fastdfsclient.service.FileInfoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import lombok.*;
+import lombok.Cleanup;
+import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,7 +21,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
-
 @CrossOrigin(maxAge = 3600)     //解决跨域
 @RestController
 @Api(tags = "fileController", description = "文件系统后台管理")
@@ -66,7 +66,6 @@ public class MyController {
                 fileInfoMapper.updateVersionByFileName(fileName);
                 logger.info("The file name is occupied, we are already update the version to new");
             }
-//            fileInfoMapper.insert(new FileInfo(fileName));
         }
 
         // count file size for human

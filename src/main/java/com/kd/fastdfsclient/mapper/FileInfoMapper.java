@@ -16,7 +16,7 @@ public interface FileInfoMapper extends BaseMapper<FileInfo> {
 
     List<FileInfo> findAllFileByName(String fileName);
 
-    FileInfo findNewFileByName(String fileName);
+    FileInfo findCurrentFileByName(String fileName);
 
     FileInfo findFileByRemoteFileName(String remoteFileName);
     void deleteByFileName(String fileName);

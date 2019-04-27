@@ -6,8 +6,8 @@
         SELECT * FROM `file_info` WHERE file_name=#{fileName};
     </select>
 
-    <select id="findNewFileByName" parameterType="string" resultType="com.kd.fastdfsclient.entity.FileInfo" >
-        SELECT * FROM `file_info` WHERE file_name=#{fileName} AND is_new=1;
+    <select id="findCurrentFileByName" parameterType="string" resultType="com.kd.fastdfsclient.entity.FileInfo" >
+        SELECT * FROM `file_info` WHERE file_name=#{fileName} AND is_current=1;
     </select>
 
     <select id="findFileByRemoteFileName" parameterType="string" resultType="com.kd.fastdfsclient.entity.FileInfo" >
@@ -19,36 +19,36 @@
     </delete>
 
     <select id="selectCountByREGEXP"  parameterType="string" resultType="int">
-        SELECT COUNT(1) FROM `file_info` WHERE file_name ${other} REGEXP #{suffix}  AND is_new=1;
+        SELECT COUNT(1) FROM `file_info` WHERE file_name ${other} REGEXP #{suffix}  AND is_current=1;
     </select>
 
     <select id="selectListByREGEXP" resultType="com.kd.fastdfsclient.entity.FileInfo">
-        SELECT * FROM `file_info` WHERE file_name ${other} REGEXP #{suffix}  AND is_new=1 ORDER BY ${order} ${sequence}
+        SELECT * FROM `file_info` WHERE file_name ${other} REGEXP #{suffix}  AND is_current=1 ORDER BY ${order} ${sequence}
                                                                                      LIMIT ${current}, ${size};
     </select>
     
     <select id="selectListForChinese" resultType="com.kd.fastdfsclient.entity.FileInfo">
-        SELECT * FROM `file_info`  WHERE file_name ${other} REGEXP #{suffix}  AND is_new=1 ORDER BY CONVERT(${order} USING gbk)
+        SELECT * FROM `file_info`  WHERE file_name ${other} REGEXP #{suffix}  AND is_current=1 ORDER BY CONVERT(${order} USING gbk)
                                                                                       COLLATE gbk_chinese_ci ${sequence}
                                                                                       LIMIT ${current}, ${size};
     </select>
 
     <select id="searchCount" resultType="int">
-        SELECT count(1) FROM `file_info` WHERE file_name LIKE #{fileName}  AND is_new=1;
+        SELECT count(1) FROM `file_info` WHERE file_name LIKE #{fileName}  AND is_current=1;
     </select>
 
     <select id="searchPage" resultType="com.kd.fastdfsclient.entity.FileInfo">
-        SELECT * FROM `file_info` WHERE file_name LIKE #{fileName} AND is_new=1 ORDER BY ${order} ${sequence} LIMIT ${current}, ${size};
+        SELECT * FROM `file_info` WHERE file_name LIKE #{fileName} AND is_current=1 ORDER BY ${order} ${sequence} LIMIT ${current}, ${size};
     </select>
 
     <select id="searchPageForChinese" resultType="com.kd.fastdfsclient.entity.FileInfo">
-        SELECT * FROM `file_info` WHERE file_name LIKE #{fileName} AND is_new=1 ORDER BY CONVERT(${order} USING gbk)
+        SELECT * FROM `file_info` WHERE file_name LIKE #{fileName} AND is_current=1 ORDER BY CONVERT(${order} USING gbk)
                                                                             COLLATE gbk_chinese_ci ${sequence}
                                                                             LIMIT ${current}, ${size};
     </select>
 
     <update id="updateVersionByFileName" parameterType="string" >
-        UPDATE file_info SET is_new=0 WHERE file_name=#{fileName} AND is_new=1;
+        UPDATE file_info SET is_current=0 WHERE file_name=#{fileName} AND is_current=1;
     </update>
 
 
