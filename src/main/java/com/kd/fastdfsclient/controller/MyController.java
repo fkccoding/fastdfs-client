@@ -1,16 +1,16 @@
 package com.kd.fastdfsclient.controller;
 
-import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.kd.fastdfsclient.entity.FileInfo;
 import com.kd.fastdfsclient.fastdfs.FastDFSClient;
 import com.kd.fastdfsclient.mapper.FileInfoMapper;
 import com.kd.fastdfsclient.service.FileInfoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import lombok.Cleanup;
+import lombok.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -19,9 +19,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.math.BigDecimal;
 import java.util.*;
 
+@Data
 @CrossOrigin(maxAge = 3600)     //解决跨域
 @RestController
 @Api(tags = "fileController", description = "文件系统后台管理")
@@ -52,22 +52,26 @@ public class MyController {
 
     @ApiOperation("上传文件")
     @PostMapping("/upload")
+    @Transactional
     public Map<String, Integer> singleFileUpload(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
         Map<String, Integer> msg = new HashMap<>();
         String fileName = file.getOriginalFilename();
         long realSize = file.getSize();
 
+        //TODO 如果数据库查到已经存在该文件名，那么把文件名等于传进来的文件名且is_current=1的文件的is_current更新为0，
+        // 不管怎样都插入新纪录，且把is_current置1，注意防止线程不安全的问题
+
         synchronized (this) {
-            if (fileInfoService.findFileByName(fileName) != null) {
-                msg.put("msg", 1);
-                logger.info("The file name is occupied");
-                return msg;
+            FileInfo fileByName = fileInfoService.findFileByName(fileName);
+            if (null != fileByName) {
+                fileInfoMapper.updateVersionByFileName(fileName);
+                logger.info("The file name is occupied, we are already update the version to new");
             }
-            fileInfoMapper.insert(new FileInfo(fileName));
+//            fileInfoMapper.insert(new FileInfo(fileName));
         }
 
         // count file size for human
-        String hFileSize = getHumanSize(realSize);
+        String hFileSize = fileInfoService.getHumanSize(realSize);
         String operator = operators.get(request.getRemoteAddr());
         if (null == operator) {     //If the user's IP is illegal
             operator = "Hacker";
@@ -76,11 +80,11 @@ public class MyController {
             // Get the file and save it somewhere
             String[] strings = FastDFSClient.saveFile(file);
             String path = strings[0];
-            FileInfo fileInfo = new FileInfo(fileName, strings[1], strings[2], new Date(), hFileSize, realSize, 1.0, operator);
-//            fileInfoService.save(fileInfo);
-            fileInfoMapper.updateById(fileInfo);
+            FileInfo fileInfo = new FileInfo(fileName, strings[1], strings[2], new Date(), hFileSize, realSize, 1.0, operator, 1);
+            fileInfoService.save(fileInfo);
+//            fileInfoMapper.updateByFileNameAndIsNew(fileName);
         } catch (Exception e) {
-            fileInfoMapper.deleteByFileName(fileName);
+//            fileInfoMapper.deleteByFileName(fileName);
             logger.error("upload file failed", e);
             msg.put("msg", 2);
             return msg;
@@ -89,24 +93,10 @@ public class MyController {
         return msg;
     }
 
-    private String getHumanSize(double realSize) {
-        double fileSize = realSize;
-        String hFileSize = fileSize + "B";
-        if (fileSize > 1024 && fileSize / 1024 <= 1024) {
-            BigDecimal bd = new BigDecimal(fileSize / 1024);
-            hFileSize = bd.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue() + "KB";
-        }
-        if (fileSize / 1024 > 1024) {
-            BigDecimal bd = new BigDecimal(fileSize / 1024 / 1024);
-            hFileSize = bd.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue() + "MB";
-        }
-        return hFileSize;
-    }
-
-    @GetMapping("/findByName")
+    /*@GetMapping("/findByName")
     public FileInfo findByName(String filename) {
         return fileInfoService.findFileByName(filename);
-    }
+    }*/
 
     @ApiOperation("单个或批量删除文件")
     @PostMapping("/delete")
@@ -114,34 +104,46 @@ public class MyController {
         String[] fileNameList = json.get("fileNameList");
         for (int i = 0; i < fileNameList.length; i++) {
             String fileName = fileNameList[i];
-            FileInfo fileByName = fileInfoService.findFileByName(fileName);
-            if (null == fileByName) {
-                return "file not found";
-            } else {
-                String deleteFileMsg = FastDFSClient.deleteFile(fileByName.getGroupName(), fileByName.getRemoteFileName());
-                logger.info(deleteFileMsg);
-                fileInfoService.deleteByFileName(fileName);
+            //delete file include the old version
+            List<FileInfo> allFileByName = fileInfoMapper.findAllFileByName(fileName);
+            for (FileInfo fileByName: allFileByName) {
+                if (null == fileByName) {
+                    return "file not found";
+                } else {
+                    String deleteFileMsg = FastDFSClient.deleteFile(fileByName.getGroupName(), fileByName.getRemoteFileName());
+                    logger.info(deleteFileMsg);
+                    fileInfoService.deleteByFileName(fileName);
+                }
             }
+
         }
         return "success";
     }
 
+    /**
+     *
+     * @param remoteFileName
+     * @param response
+     * @return
+     */
     @ApiOperation("下载文件")
     @GetMapping("/downFile")
-    public String downFile(String fileName, HttpServletResponse response) {
-        FileInfo fileByName = fileInfoService.findFileByName(fileName);
+    @SneakyThrows //可以对受检异常进行捕捉并抛出
+    public String downFile(String remoteFileName, HttpServletResponse response) {
+        FileInfo fileByName = fileInfoMapper.findFileByRemoteFileName(remoteFileName);
         if (null == fileByName) {
             logger.error("File not found!!!");
             return "File not found!!!";
         }
+        // @Cleanup 自动关闭资源，针对实现了java.io.Closeable接口的对象有效
         @Cleanup InputStream input = FastDFSClient.downFile(fileByName.getGroupName(), fileByName.getRemoteFileName());
         int index;
         byte[] bytes = new byte[1024];
-        @Cleanup OutputStream outputStream;
+        @Cleanup OutputStream outputStream = null;
         try {
             response.setHeader("Content-type", "application/octet-stream");
 //            response.setHeader("Content-disposition", "attachment;fileName=" + URLEncoder.encode(filename,"UTF-8"));
-            response.setHeader("Content-disposition", "attachment;fileName=" + new String(fileName.getBytes(), "ISO-8859-1"));
+            response.setHeader("Content-disposition", "attachment;fileName=" + new String(fileByName.getFileName().getBytes(), "ISO-8859-1"));
             outputStream = response.getOutputStream();
             while ((index = input.read(bytes)) != -1) {
                 outputStream.write(bytes, 0, index);
@@ -175,8 +177,8 @@ public class MyController {
             count = fileInfoMapper.searchCount("%" + fileName + "%");
             fileInfoList = fileInfoService.searchPage("%" + fileName + "%", (current - 1) * size, size, order, asc);
         } else {
-            String suffix = (String) categoryToSuffix(category).get("suffix");
-            boolean other = (boolean) categoryToSuffix(category).get("other");
+            String suffix = (String) fileInfoService.categoryToSuffix(category).get("suffix");
+            boolean other = (boolean) fileInfoService.categoryToSuffix(category).get("other");
             count = fileInfoService.selectCountByREGEXP(suffix, other);
             fileInfoList = fileInfoService.selectListByREGEXP(suffix, other, current, size, order, asc);
         }
@@ -186,29 +188,4 @@ public class MyController {
         return map;
     }
 
-    Map<String, Object> categoryToSuffix(String category) {
-        Map<String, Object> map = new HashMap<String, Object>();
-        String suffix;
-        boolean other = false;
-        if ("image".equals(category)) {
-            suffix = ".jpg|.bmp|.gif|.ico|.pcx|.jpeg|.tif|.png|.raw|.tga|.svg|.webp";
-        } else if ("doc".equals(category)) {
-            suffix = ".doc|.docx|.dot|.dotx|.dotm|.rtf|.xls|.xlsx|.ppt|.pptx|.txt|.pdf";
-        } else if ("video".equals(category)) {
-            suffix = ".avi|.mp4|.rmvb|.mpeg|.mov|.mkv|.wmv|.flv|.webm";
-        } else if ("music".equals(category)) {
-            suffix = ".mp3|.aac|.wav|.flav|.ape|.alac|.flac";
-        } else if ("all".equals(category)) {
-            suffix = ".";
-        } else {
-            suffix = ".jpg|.bmp|.gif|.ico|.pcx|.jpeg|.tif|.png|.raw|.tga|.svg|.webp" +
-                    ".doc|.docx|.dot|.dotx|.dotm|.rtf|.xls|.xlsx|.ppt|.pptx|.txt|.pdf|" +
-                    ".avi|.mp4|.rmvb|.mpeg|.mov|.mkv|.wmv|.flv|.webm|" +
-                    ".mp3|.aac|.wav|.flav|.ape|.alac|.flac";
-            other = true;
-        }
-        map.put("suffix", suffix);
-        map.put("other", other);
-        return map;
-    }
 }

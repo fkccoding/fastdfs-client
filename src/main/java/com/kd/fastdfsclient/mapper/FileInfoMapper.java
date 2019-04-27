@@ -14,8 +14,11 @@ import java.util.List;
 @Repository
 public interface FileInfoMapper extends BaseMapper<FileInfo> {
 
-    FileInfo findFileByName(String fileName);
+    List<FileInfo> findAllFileByName(String fileName);
 
+    FileInfo findNewFileByName(String fileName);
+
+    FileInfo findFileByRemoteFileName(String remoteFileName);
     void deleteByFileName(String fileName);
 
     int selectCountByREGEXP(@Param("suffix") String suffix, @Param("other") String other);
@@ -37,4 +40,6 @@ public interface FileInfoMapper extends BaseMapper<FileInfo> {
     List<FileInfo> searchPageForChinese(@Param("fileName") String fileName,@Param("current") long current,
                                         @Param("size") long size, @Param("order") String order,
                                         @Param("sequence") String sequence);
+
+    int updateVersionByFileName(String fileName);
 }

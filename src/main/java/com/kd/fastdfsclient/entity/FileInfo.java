@@ -22,6 +22,7 @@ public class FileInfo implements Serializable {
     Long realSize;
     double version;
     String operator;
+    int isNew;
 
     public FileInfo() {
     }
@@ -30,7 +31,7 @@ public class FileInfo implements Serializable {
         this.fileName = fileName;
     }
 
-    public FileInfo(String fileName, String groupName, String remoteFileName, Date uploadDate, String fileSize, Long realSize, double version, String operator) {
+    public FileInfo(String fileName, String groupName, String remoteFileName, Date uploadDate, String fileSize, Long realSize, double version, String operator, int isNew) {
         this.fileName = fileName;
         this.groupName = groupName;
         this.remoteFileName = remoteFileName;
@@ -39,5 +40,6 @@ public class FileInfo implements Serializable {
         this.realSize = realSize;
         this.version = version;
         this.operator = operator;
+        this.isNew = isNew;
     }
 }
