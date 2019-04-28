@@ -14,15 +14,16 @@ import java.util.Date;
 @Data
 public class FileInfo implements Serializable {
     @TableId
-    String fileName;
-    String groupName;
-    String remoteFileName;
-    Date uploadDate;
-    String fileSize;
-    Long realSize;
-    double version;
-    String operator;
-    int isCurrent;
+    private String fileName;
+    private String groupName;
+    private String remoteFileName;
+    private Date uploadDate;
+    private String fileSize;
+    private Long realSize;
+    private double version;
+    private String operator;
+    private int isCurrent;
+
 
     public FileInfo() {
     }

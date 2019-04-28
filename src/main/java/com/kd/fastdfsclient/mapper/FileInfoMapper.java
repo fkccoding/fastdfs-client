@@ -18,7 +18,8 @@ public interface FileInfoMapper extends BaseMapper<FileInfo> {
 
     FileInfo findCurrentFileByName(String fileName);
 
-    FileInfo findFileByRemoteFileName(String remoteFileName);
+    String findFileByGroupAndRemoteFileName(String groupName, String remoteFileName);
+
     void deleteByFileName(String fileName);
 
     int selectCountByREGEXP(@Param("suffix") String suffix, @Param("other") String other);

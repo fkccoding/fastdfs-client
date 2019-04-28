@@ -15,11 +15,10 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.*;
 @CrossOrigin(maxAge = 3600)     //解决跨域
 @RestController
@@ -106,6 +105,7 @@ public class MyController {
             List<FileInfo> allFileByName = fileInfoMapper.findAllFileByName(fileName);
             for (FileInfo fileByName: allFileByName) {
                 if (null == fileByName) {
+                    logger.error("File not found!!!");
                     return "file not found";
                 } else {
                     String deleteFileMsg = FastDFSClient.deleteFile(fileByName.getGroupName(), fileByName.getRemoteFileName());
@@ -113,7 +113,6 @@ public class MyController {
                     fileInfoService.deleteByFileName(fileName);
                 }
             }
-
         }
         return "success";
     }
@@ -127,21 +126,21 @@ public class MyController {
     @ApiOperation("下载文件")
     @GetMapping("/downFile")
     @SneakyThrows //可以对受检异常进行捕捉并抛出
-    public String downFile(String remoteFileName, HttpServletResponse response) {
-        FileInfo fileByName = fileInfoMapper.findFileByRemoteFileName(remoteFileName);
-        if (null == fileByName) {
+    public String downFile(@RequestParam("groupName") String groupName, @RequestParam("remoteFileName") String remoteFileName, HttpServletResponse response) {
+        String fileName = fileInfoMapper.findFileByGroupAndRemoteFileName(groupName, remoteFileName);
+        if (null == fileName) {
             logger.error("File not found!!!");
             return "File not found!!!";
         }
         // @Cleanup 自动关闭资源，针对实现了java.io.Closeable接口的对象有效
-        @Cleanup InputStream input = FastDFSClient.downFile(fileByName.getGroupName(), fileByName.getRemoteFileName());
+        @Cleanup BufferedInputStream input = (BufferedInputStream) FastDFSClient.downFile(groupName, remoteFileName);
         int index;
         byte[] bytes = new byte[1024];
-        @Cleanup OutputStream outputStream = null;
+        @Cleanup ServletOutputStream outputStream = null;
         try {
             response.setHeader("Content-type", "application/octet-stream");
-//            response.setHeader("Content-disposition", "attachment;fileName=" + URLEncoder.encode(filename,"UTF-8"));
-            response.setHeader("Content-disposition", "attachment;fileName=" + new String(fileByName.getFileName().getBytes(), "ISO-8859-1"));
+          //response.setHeader("Content-disposition", "attachment;fileName=" + URLEncoder.encode(filename,"UTF-8"));
+            response.setHeader("Content-disposition", "attachment;fileName=" + new String(fileName.getBytes(), "ISO-8859-1"));
             outputStream = response.getOutputStream();
             while ((index = input.read(bytes)) != -1) {
                 outputStream.write(bytes, 0, index);
@@ -150,7 +149,7 @@ public class MyController {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        logger.info("Join download queue");
+        logger.info("Join download queue...");
         return "success!";
     }
 

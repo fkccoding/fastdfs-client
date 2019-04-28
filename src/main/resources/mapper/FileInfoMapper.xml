@@ -10,8 +10,8 @@
         SELECT * FROM `file_info` WHERE file_name=#{fileName} AND is_current=1;
     </select>
 
-    <select id="findFileByRemoteFileName" parameterType="string" resultType="com.kd.fastdfsclient.entity.FileInfo" >
-        SELECT * FROM `file_info` WHERE remote_file_name=#{remoteFileName};
+    <select id="findFileByGroupAndRemoteFileName" parameterType="string" resultType="string" >
+        SELECT file_name FROM `file_info` WHERE group_name = #{groupName} AND remote_file_name=#{remoteFileName};
     </select>
 
     <delete id="deleteByFileName" parameterType="string" >

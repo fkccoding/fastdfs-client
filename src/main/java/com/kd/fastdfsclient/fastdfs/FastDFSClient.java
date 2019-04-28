@@ -5,7 +5,7 @@ import org.csource.fastdfs.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.multipart.MultipartFile;
-
+import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -33,7 +33,7 @@ public class FastDFSClient {
 		String fileName = multipartFile.getOriginalFilename();
 		String ext = fileName.substring(fileName.lastIndexOf(".") + 1);
 		byte[] file_buff = null;
-		InputStream inputStream = multipartFile.getInputStream();
+		BufferedInputStream inputStream = (BufferedInputStream) multipartFile.getInputStream();
 		if (inputStream != null) {
 			int len1 = inputStream.available();
 			file_buff = new byte[len1];
