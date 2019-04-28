@@ -23,8 +23,8 @@ import java.util.*;
 @CrossOrigin(maxAge = 3600)     //解决跨域
 @RestController
 @Api(tags = "fileController", description = "文件系统后台管理")
-public class MyController {
-    private static Logger logger = LoggerFactory.getLogger(MyController.class);
+public class FileController {
+    private static Logger logger = LoggerFactory.getLogger(FileController.class);
 
     @Autowired
     FileInfoService fileInfoService;
@@ -34,9 +34,7 @@ public class MyController {
 
     private Map<String, String> operators = new HashMap<>();
 
-//    private String tempFileName;
-
-    MyController(){
+    FileController(){
         operators.put("192.100.1.210", "曲广昊");
         operators.put("192.100.1.211", "方程");
         operators.put("192.100.1.213", "崔志臣");
@@ -56,32 +54,22 @@ public class MyController {
         String fileName = file.getOriginalFilename();
         long realSize = file.getSize();
 
-        //TODO 如果数据库查到已经存在该文件名，那么把文件名等于传进来的文件名且is_current=1的文件的is_current更新为0，
-        // 不管怎样都插入新纪录，且把is_current置1，注意防止线程不安全的问题
-
+        // Prevent conflicts when multiple files are uploaded at the same time
         synchronized (this) {
-            FileInfo fileByName = fileInfoService.findFileByName(fileName);
-            if (null != fileByName) {
-                fileInfoMapper.updateVersionByFileName(fileName);
-                logger.info("The file name is occupied, we are already update the version to new");
-            }
+            fileInfoService.updateVersion(fileName);
         }
-
-        // count file size for human
-        String hFileSize = fileInfoService.getHumanSize(realSize);
-        String operator = operators.get(request.getRemoteAddr());
-        if (null == operator) {     //If the user's IP is illegal
-            operator = "Hacker";
-        }
-        try {
-            // Get the file and save it somewhere
+        try {// Get the file and save it to FastDFS somewhere
             String[] strings = FastDFSClient.saveFile(file);
-            String path = strings[0];
-            FileInfo fileInfo = new FileInfo(fileName, strings[1], strings[2], new Date(), hFileSize, realSize, 1.0, operator, 1);
-            fileInfoService.save(fileInfo);
-//            fileInfoMapper.updateByFileNameAndIsNew(fileName);
+            // Save FileInfo to mysql
+            //      count file size for human
+            String hFileSize = fileInfoService.getHumanSize(realSize);
+            String operator = operators.get(request.getRemoteAddr());
+            if (null == operator) {     //If the user's IP is illegal
+                operator = "Hacker";
+            }
+            fileInfoService.save(new FileInfo(fileName,strings[1],strings[2],new Date(),hFileSize,realSize,1.0,operator,1));
+            logger.info("upload path is " + strings[0]);
         } catch (Exception e) {
-//            fileInfoMapper.deleteByFileName(fileName);
             logger.error("upload file failed", e);
             msg.put("msg", 2);
             return msg;
@@ -90,10 +78,6 @@ public class MyController {
         return msg;
     }
 
-    /*@GetMapping("/findByName")
-    public FileInfo findByName(String filename) {
-        return fileInfoService.findFileByName(filename);
-    }*/
 
     @ApiOperation("单个或批量删除文件")
     @PostMapping("/delete")
@@ -118,7 +102,7 @@ public class MyController {
     }
 
     /**
-     *
+     * @param groupName
      * @param remoteFileName
      * @param response
      * @return
@@ -154,8 +138,13 @@ public class MyController {
     }
 
     /**
+     *
+     * @param category 分类
      * @param current 当前的页数
-     * @param size    每页的大小
+     * @param size 每页的大小
+     * @param order 排序规则
+     * @param asc 是否正序
+     * @param fileName 文件名，如果非空则表示使用模糊搜索功能
      * @return 文件信息列表
      */
     @ApiOperation("分页获取文件分类信息或按文件名模糊搜索")
@@ -185,4 +174,15 @@ public class MyController {
         return map;
     }
 
+    @ApiOperation("获取历史列表")
+    @GetMapping("/showHistory")
+    public List<FileInfo> showHistory(String fileName){
+        return fileInfoMapper.findAllFileByName(fileName);
+    }
+
+    @ApiOperation("回退历史版本")
+    @GetMapping("/revert")
+    public void revert(String fileName, String remoteFileName) {
+        fileInfoService.revert(fileName, remoteFileName);
+    }
 }

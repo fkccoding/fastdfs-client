@@ -2,9 +2,12 @@ package com.kd.fastdfsclient.service.impl;
 
 import com.alicp.jetcache.anno.Cached;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.kd.fastdfsclient.controller.FileController;
 import com.kd.fastdfsclient.entity.FileInfo;
 import com.kd.fastdfsclient.mapper.FileInfoMapper;
 import com.kd.fastdfsclient.service.FileInfoService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +19,8 @@ import java.util.List;
  */
 @Service
 public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> implements FileInfoService {
+
+    private static Logger logger = LoggerFactory.getLogger(FileInfoServiceImpl.class);
 
     @Autowired
     FileInfoMapper fileInfoMapper;
@@ -104,6 +109,25 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
             }
         }
         return fileInfoList;
+    }
+
+    // 如果数据库查到已经存在该文件名的文件，那么把其中is_current=1的文件的is_current更新为0，
+    // 不管怎样都插入新纪录，且把新纪录的is_current置1
+    @Override
+    public void updateVersion(String fileName) {
+        if (null != findFileByName(fileName)) {
+            fileInfoMapper.updateVersionToOldByFileName(fileName,
+                    fileInfoMapper.findCurrentFileByName(fileName).getUploadDate());
+            logger.info("The file name is occupied, we are already update the version to new");
+        }
+    }
+
+    @Override
+    public void revert(String fileName, String remoteFileName) {
+        fileInfoMapper.updateVersionToOldByFileName(fileName,
+                fileInfoMapper.findCurrentFileByName(fileName).getUploadDate());
+        fileInfoMapper.updateVersionToCurrentByRemoteFileName(remoteFileName,
+                fileInfoMapper.findFileByRemoteFileName(remoteFileName).getUploadDate());
     }
 
 }

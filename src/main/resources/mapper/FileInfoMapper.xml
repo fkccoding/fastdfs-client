@@ -10,6 +10,10 @@
         SELECT * FROM `file_info` WHERE file_name=#{fileName} AND is_current=1;
     </select>
 
+    <select id="findFileByRemoteFileName" parameterType="string" resultType="com.kd.fastdfsclient.entity.FileInfo" >
+        SELECT * FROM `file_info` WHERE remote_file_name=#{remoteFileName};
+    </select>
+
     <select id="findFileByGroupAndRemoteFileName" parameterType="string" resultType="string" >
         SELECT file_name FROM `file_info` WHERE group_name = #{groupName} AND remote_file_name=#{remoteFileName};
     </select>
@@ -47,9 +51,11 @@
                                                                             LIMIT ${current}, ${size};
     </select>
 
-    <update id="updateVersionByFileName" parameterType="string" >
-        UPDATE file_info SET is_current=0 WHERE file_name=#{fileName} AND is_current=1;
+    <update id="updateVersionToOldByFileName">
+        UPDATE file_info SET is_current=0 ,upload_date=#{uploadDate} WHERE file_name=#{fileName} AND is_current=1;
     </update>
 
-
+    <update id="updateVersionToCurrentByRemoteFileName">
+        UPDATE file_info SET is_current=1 ,upload_date=#{uploadDate} WHERE remote_file_name=#{remoteFileName};
+    </update>
 </mapper>

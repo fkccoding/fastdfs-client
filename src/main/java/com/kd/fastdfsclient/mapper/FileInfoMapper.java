@@ -5,6 +5,7 @@ import com.kd.fastdfsclient.entity.FileInfo;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -17,6 +18,8 @@ public interface FileInfoMapper extends BaseMapper<FileInfo> {
     List<FileInfo> findAllFileByName(String fileName);
 
     FileInfo findCurrentFileByName(String fileName);
+
+    FileInfo findFileByRemoteFileName(String remoteFileName);
 
     String findFileByGroupAndRemoteFileName(String groupName, String remoteFileName);
 
@@ -42,5 +45,7 @@ public interface FileInfoMapper extends BaseMapper<FileInfo> {
                                         @Param("size") long size, @Param("order") String order,
                                         @Param("sequence") String sequence);
 
-    int updateVersionByFileName(String fileName);
+    int updateVersionToOldByFileName(@Param("fileName") String fileName, @Param("uploadDate") Date uploadDate);
+
+    int updateVersionToCurrentByRemoteFileName(@Param("remoteFileName")String remoteFileName, @Param("uploadDate") Date uploadDate);
 }

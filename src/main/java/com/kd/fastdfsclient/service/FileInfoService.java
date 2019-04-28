@@ -60,4 +60,8 @@ public interface FileInfoService extends IService<FileInfo> {
         map.put("other", other);
         return map;
     }
+
+    void updateVersion(String fileName);
+
+    void revert(String fileName, String remoteFileName);
 }
