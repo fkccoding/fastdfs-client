@@ -21,7 +21,7 @@ public interface FileInfoMapper extends BaseMapper<FileInfo> {
 
     FileInfo findFileByRemoteFileName(String remoteFileName);
 
-    String findFileByGroupAndRemoteFileName(String groupName, String remoteFileName);
+    String findFileByGroupAndRemoteFileName(@Param("groupName") String groupName, @Param("remoteFileName") String remoteFileName);
 
     void deleteByFileName(String fileName);
 
@@ -45,7 +45,7 @@ public interface FileInfoMapper extends BaseMapper<FileInfo> {
                                         @Param("size") long size, @Param("order") String order,
                                         @Param("sequence") String sequence);
 
-    int updateVersionToOldByFileName(@Param("fileName") String fileName, @Param("uploadDate") Date uploadDate);
+    int updateVersionToOldByFileName(@Param("fileName") String fileName);
 
-    int updateVersionToCurrentByRemoteFileName(@Param("remoteFileName")String remoteFileName, @Param("uploadDate") Date uploadDate);
+    int updateVersionToCurrentByRemoteFileName(@Param("remoteFileName")String remoteFileName);
 }

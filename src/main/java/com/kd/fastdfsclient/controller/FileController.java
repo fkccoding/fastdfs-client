@@ -78,6 +78,11 @@ public class FileController {
         return msg;
     }
 
+    @ApiOperation("查看是否已经存在文件")
+    @GetMapping("/findFile")
+    public boolean findFile(String fileName) {
+        return fileInfoService.findFileByName(fileName) == null;
+    }
 
     @ApiOperation("单个或批量删除文件")
     @PostMapping("/delete")
@@ -117,7 +122,7 @@ public class FileController {
             return "File not found!!!";
         }
         // @Cleanup 自动关闭资源，针对实现了java.io.Closeable接口的对象有效
-        @Cleanup BufferedInputStream input = (BufferedInputStream) FastDFSClient.downFile(groupName, remoteFileName);
+        @Cleanup InputStream input = FastDFSClient.downFile(groupName, remoteFileName);
         int index;
         byte[] bytes = new byte[1024];
         @Cleanup ServletOutputStream outputStream = null;
@@ -126,6 +131,7 @@ public class FileController {
           //response.setHeader("Content-disposition", "attachment;fileName=" + URLEncoder.encode(filename,"UTF-8"));
             response.setHeader("Content-disposition", "attachment;fileName=" + new String(fileName.getBytes(), "ISO-8859-1"));
             outputStream = response.getOutputStream();
+            logger.info("Join download queue...");
             while ((index = input.read(bytes)) != -1) {
                 outputStream.write(bytes, 0, index);
                 outputStream.flush();
@@ -133,7 +139,6 @@ public class FileController {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        logger.info("Join download queue...");
         return "success!";
     }
 

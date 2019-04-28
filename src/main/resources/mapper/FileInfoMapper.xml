@@ -3,7 +3,7 @@
 <mapper namespace="com.kd.fastdfsclient.mapper.FileInfoMapper">
 
     <select id="findAllFileByName" parameterType="string" resultType="com.kd.fastdfsclient.entity.FileInfo" >
-        SELECT * FROM `file_info` WHERE file_name=#{fileName};
+        SELECT * FROM `file_info` WHERE file_name=#{fileName} ORDER BY upload_date DESC;
     </select>
 
     <select id="findCurrentFileByName" parameterType="string" resultType="com.kd.fastdfsclient.entity.FileInfo" >
@@ -52,10 +52,10 @@
     </select>
 
     <update id="updateVersionToOldByFileName">
-        UPDATE file_info SET is_current=0 ,upload_date=#{uploadDate} WHERE file_name=#{fileName} AND is_current=1;
+        UPDATE file_info SET is_current=0 WHERE file_name=#{fileName} AND is_current=1;
     </update>
 
     <update id="updateVersionToCurrentByRemoteFileName">
-        UPDATE file_info SET is_current=1 ,upload_date=#{uploadDate} WHERE remote_file_name=#{remoteFileName};
+        UPDATE file_info SET is_current=1 WHERE remote_file_name=#{remoteFileName};
     </update>
 </mapper>

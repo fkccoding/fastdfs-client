@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -116,18 +117,17 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     @Override
     public void updateVersion(String fileName) {
         if (null != findFileByName(fileName)) {
-            fileInfoMapper.updateVersionToOldByFileName(fileName,
-                    fileInfoMapper.findCurrentFileByName(fileName).getUploadDate());
-            logger.info("The file name is occupied, we are already update the version to new");
+            fileInfoMapper.updateVersionToOldByFileName(fileName);
+            logger.info("The file name is occupied, we are already update the version to new.");
         }
     }
 
     @Override
+    @Transactional
     public void revert(String fileName, String remoteFileName) {
-        fileInfoMapper.updateVersionToOldByFileName(fileName,
-                fileInfoMapper.findCurrentFileByName(fileName).getUploadDate());
-        fileInfoMapper.updateVersionToCurrentByRemoteFileName(remoteFileName,
-                fileInfoMapper.findFileByRemoteFileName(remoteFileName).getUploadDate());
+        fileInfoMapper.updateVersionToOldByFileName(fileName);
+        fileInfoMapper.updateVersionToCurrentByRemoteFileName(remoteFileName);
+        logger.info("revert success ！");
     }
 
 }
