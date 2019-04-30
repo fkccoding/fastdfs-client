@@ -2,6 +2,7 @@ package com.kd.fastdfsclient.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.kd.fastdfsclient.entity.FileInfo;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -64,4 +65,6 @@ public interface FileInfoService extends IService<FileInfo> {
     void updateVersion(String fileName);
 
     void revert(String fileName, String remoteFileName);
+
+    int saveFile(MultipartFile file, String remoteAddr);
 }

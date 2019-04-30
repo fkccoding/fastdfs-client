@@ -16,6 +16,7 @@ spring:
 
 
 
+
 mybatis-plus:
   mapper-locations: classpath:mapper/*.xml
   type-aliases-package: com.kd.fastdfsclient.entity

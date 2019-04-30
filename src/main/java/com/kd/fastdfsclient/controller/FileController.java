@@ -11,7 +11,6 @@ import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -32,50 +31,14 @@ public class FileController {
     @Autowired
     FileInfoMapper fileInfoMapper;
 
-    private Map<String, String> operators = new HashMap<>();
-
-    FileController(){
-        operators.put("192.100.1.210", "曲广昊");
-        operators.put("192.100.1.211", "方程");
-        operators.put("192.100.1.213", "崔志臣");
-        operators.put("192.100.1.230", "武瑞敏");
-        operators.put("192.100.1.231", "汪垚");
-        operators.put("192.100.1.232", "向凌吉");
-        operators.put("192.100.1.233", "江天");
-        operators.put("192.100.1.237", "卢荟芳");
-        operators.put("192.100.1.123", "魏健东");
-    }
-
     @ApiOperation("上传文件")
     @PostMapping("/upload")
-    @Transactional
-    public Map<String, Integer> singleFileUpload(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
-        Map<String, Integer> msg = new HashMap<>();
-        String fileName = file.getOriginalFilename();
-        long realSize = file.getSize();
-
+    public int singleFileUpload(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
         // Prevent conflicts when multiple files are uploaded at the same time
         synchronized (this) {
-            fileInfoService.updateVersion(fileName);
+            fileInfoService.updateVersion(file.getOriginalFilename());
         }
-        try {// Get the file and save it to FastDFS somewhere
-            String[] strings = FastDFSClient.saveFile(file);
-            // Save FileInfo to mysql
-            //      count file size for human
-            String hFileSize = fileInfoService.getHumanSize(realSize);
-            String operator = operators.get(request.getRemoteAddr());
-            if (null == operator) {     //If the user's IP is illegal
-                operator = "Hacker";
-            }
-            fileInfoService.save(new FileInfo(fileName,strings[1],strings[2],new Date(),hFileSize,realSize,1.0,operator,1));
-            logger.info("upload path is " + strings[0]);
-        } catch (Exception e) {
-            logger.error("upload file failed", e);
-            msg.put("msg", 2);
-            return msg;
-        }
-        msg.put("msg", 3);
-        return msg;
+        return fileInfoService.saveFile(file, request.getRemoteAddr());
     }
 
     @ApiOperation("查看是否已经存在文件")
