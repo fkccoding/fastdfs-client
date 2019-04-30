@@ -22,7 +22,7 @@ import java.util.Map;
  * @Author: www.chuckfang.top
  * @Date: 2019/3/26 11:13
  */
-@Service()
+@Service
 public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> implements FileInfoService {
 
     private static Logger logger = LoggerFactory.getLogger(FileInfoServiceImpl.class);
