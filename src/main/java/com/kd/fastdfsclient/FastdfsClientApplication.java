@@ -21,7 +21,7 @@ public class FastdfsClientApplication {
     }
 
     /**
-     * 分页插件
+     * Mybatis-Plus分页插件
      */
     @Bean
     public PaginationInterceptor paginationInterceptor() {

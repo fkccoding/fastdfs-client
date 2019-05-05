@@ -14,14 +14,12 @@ import java.util.List;
 @RunWith(SpringRunner.class)
 @SpringBootTest
 public class FastdfsClientApplicationTests {
-    private PrintStream printStream ;
     @Autowired
     FileInfoMapper fileInfoMapper;
 
     @Test
     public void contextLoads() {
 
-        printStream.println("ew");
     }
 
     @Test
