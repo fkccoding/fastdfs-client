@@ -19,7 +19,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
 import java.util.*;
-@CrossOrigin(maxAge = 3600)     //解决跨域
+
+/**
+ * @Author: www.chuckfang.top
+ * @Date: 2019/4/3 14:51
+ */
+@CrossOrigin(maxAge = 3600)    // 解决跨域问题
 @RestController
 @Api(tags = "fileController", description = "文件系统后台管理")
 public class FileController {
@@ -91,7 +96,6 @@ public class FileController {
         @Cleanup ServletOutputStream outputStream = null;
         try {
             response.setHeader("Content-type", "application/octet-stream");
-          //response.setHeader("Content-disposition", "attachment;fileName=" + URLEncoder.encode(filename,"UTF-8"));
             response.setHeader("Content-disposition", "attachment;fileName=" + new String(fileName.getBytes(), "ISO-8859-1"));
             outputStream = response.getOutputStream();
             logger.info("Join download queue...");

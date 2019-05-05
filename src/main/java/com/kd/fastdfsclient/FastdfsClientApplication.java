@@ -9,6 +9,10 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.transaction.annotation.EnableTransactionManagement;
 
+/**
+ * @Author: www.chuckfang.top
+ * @Date: 2019/4/3 14:51
+ */
 @SpringBootApplication
 @EnableTransactionManagement    //分页插件需要这个注解
 @MapperScan("com.kd.fastdfsclient.mapper")

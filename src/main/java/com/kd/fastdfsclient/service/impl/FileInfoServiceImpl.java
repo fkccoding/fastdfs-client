@@ -1,5 +1,6 @@
 package com.kd.fastdfsclient.service.impl;
 
+import com.alicp.jetcache.anno.CacheUpdate;
 import com.alicp.jetcache.anno.Cached;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.kd.fastdfsclient.entity.FileInfo;
@@ -133,8 +134,10 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         return fileInfoList;
     }
 
-    // 如果数据库查到已经存在该文件名的文件，那么把其中is_current=1的文件的is_current更新为0，
-    // 不管怎样都插入新纪录，且把新纪录的is_current置1
+    /**
+     * 如果数据库查到已经存在该文件名的文件，那么把其中is_current=1的文件的is_current更新为0，
+     * 不管怎样都插入新纪录，且把新纪录的is_current置1
+     */
     @Override
     public void updateVersion(String fileName) {
         if (null != findFileByName(fileName)) {
@@ -158,7 +161,8 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         long realSize = file.getSize();
         String hFileSize = getHumanSize(realSize);
         String operator = operators.get(remoteAddr);
-        if (null == operator) {     //If the user's IP is illegal
+        //If the user's IP is illegal
+        if (null == operator) {
             operator = "Hacker";
         }
         try {
