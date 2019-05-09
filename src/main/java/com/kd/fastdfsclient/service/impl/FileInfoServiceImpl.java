@@ -1,7 +1,8 @@
 package com.kd.fastdfsclient.service.impl;
 
-import com.alicp.jetcache.anno.CacheUpdate;
+import com.alicp.jetcache.Cache;
 import com.alicp.jetcache.anno.Cached;
+import com.alicp.jetcache.anno.CreateCache;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.kd.fastdfsclient.entity.FileInfo;
 import com.kd.fastdfsclient.fastdfs.FastDFSClient;
@@ -29,6 +30,9 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     private static Logger logger = LoggerFactory.getLogger(FileInfoServiceImpl.class);
 
     private Map<String, String> operators = new HashMap<>();
+
+    @CreateCache(expire = 3600)
+    private Cache<Long,FileInfo> fileInfoCache;
 
     FileInfoServiceImpl() {
         operators.put("192.100.1.210", "曲广昊");
@@ -163,7 +167,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         String operator = operators.get(remoteAddr);
         //If the user's IP is illegal
         if (null == operator) {
-            operator = "Hacker";
+            operator = remoteAddr;
         }
         try {
             // Get the file and save it to FastDFS somewhere
