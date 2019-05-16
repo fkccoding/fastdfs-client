@@ -6,6 +6,7 @@ import com.kd.fastdfsclient.mapper.FileInfoMapper;
 import com.kd.fastdfsclient.service.FileInfoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import io.swagger.models.auth.In;
 import lombok.Cleanup;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
@@ -36,14 +37,19 @@ public class FileController {
     @Autowired
     FileInfoMapper fileInfoMapper;
 
-    @ApiOperation("上传文件")
+    @ApiOperation("上传文件(同时支持单文件和多文件)")
     @PostMapping("/upload")
-    public int singleFileUpload(@RequestParam("file") MultipartFile file, HttpServletRequest request) {
+    public int[] fileUpload(@RequestParam("file") MultipartFile[] fileList, HttpServletRequest request) {
         // Prevent conflicts when multiple files are uploaded at the same time
-        synchronized (this) {
-            fileInfoService.updateVersion(file.getOriginalFilename());
+        List<Integer> result = new LinkedList<>();
+        for (MultipartFile multipartFile : fileList) {
+            synchronized (this) {
+                fileInfoService.updateVersion(multipartFile.getOriginalFilename());
+                int i = fileInfoService.saveFile(multipartFile, request.getRemoteAddr());
+                result.add(i);
+            }
         }
-        return fileInfoService.saveFile(file, request.getRemoteAddr());
+        return result.stream().mapToInt(Integer::intValue).toArray();
     }
 
     @ApiOperation("查看是否已经存在文件")
@@ -74,6 +80,10 @@ public class FileController {
         return "success";
     }
 
+    @GetMapping("/deleteHistory")
+    public boolean deleteHistory(String groupName, String remoteFileName) {
+        return fileInfoService.deleteHistory(groupName, remoteFileName);
+    }
     /**
      * @param groupName
      * @param remoteFileName
@@ -135,12 +145,9 @@ public class FileController {
             count = fileInfoMapper.searchCount("%" + fileName + "%");
             fileInfoList = fileInfoService.searchPage("%" + fileName + "%", (current - 1) * size, size, order, asc);
         } else {
-            String suffix = (String) fileInfoService.categoryToSuffix(category).get("suffix");
-            boolean other = (boolean) fileInfoService.categoryToSuffix(category).get("other");
-            count = fileInfoService.selectCountByREGEXP(suffix, other);
-            fileInfoList = fileInfoService.selectListByREGEXP(suffix, other, current, size, order, asc);
+            count = fileInfoService.selectCount(category);
+            fileInfoList = fileInfoService.selectList(category, current, size, order, asc);
         }
-
         map.put("total", count);
         map.put("fileList", fileInfoList);
         return map;

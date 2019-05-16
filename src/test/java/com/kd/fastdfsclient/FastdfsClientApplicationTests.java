@@ -17,10 +17,10 @@ public class FastdfsClientApplicationTests {
     @Autowired
     FileInfoMapper fileInfoMapper;
 
-    @Test
+    /*@Test
     public void contextLoads() {
 
-    }
+    }*/
 
     @Test
     public void testTSQL11() {

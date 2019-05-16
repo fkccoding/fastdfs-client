@@ -14,16 +14,53 @@ import java.util.Map;
  * @Date: 2019/3/26 11:12
  */
 public interface FileInfoService extends IService<FileInfo> {
+    /**
+     * 根据文件名寻找文件
+     * @param fileName
+     * @return
+     */
     FileInfo findFileByName(String fileName);
 
+    /**
+     * 根据文件名删除文件
+     * @param fileName
+     */
     void deleteByFileName(String fileName);
 
-    int selectCountByREGEXP(String suffix, boolean other);
+    /**
+     * 根据文件类型查询总数
+     * @param category
+     * @return
+     */
+    int selectCount(String category);
 
-    List<FileInfo> selectListByREGEXP(String suffix, boolean other, long current, long size, String order, boolean asc);
+    /**
+     * 根据文件类型、页码、排序规则、是否正序查询文件列表
+     * @param category
+     * @param current
+     * @param size
+     * @param order
+     * @param asc
+     * @return
+     */
+    List<FileInfo> selectList(String category, long current, long size, String order, boolean asc);
 
+    /**
+     * fuzzySearch
+     * @param fileName
+     * @param current
+     * @param size
+     * @param order
+     * @param asc
+     * @return
+     */
     List<FileInfo> searchPage(String fileName, long current, long size, String order, boolean asc);
 
+    /**
+     * 以适合人类的方式显示文件大小
+     * @param realSize
+     * @return
+     */
     default String getHumanSize(double realSize) {
         String hFileSize = realSize + "B";
         if (realSize > 1024 && realSize / 1024 <= 1024) {
@@ -36,6 +73,11 @@ public interface FileInfoService extends IService<FileInfo> {
         return hFileSize;
     }
 
+    /**
+     * 文件类型转换为后缀名
+     * @param category
+     * @return
+     */
     default Map<String, Object> categoryToSuffix(String category) {
         Map<String, Object> map = new HashMap<String, Object>();
         String suffix;
@@ -62,9 +104,32 @@ public interface FileInfoService extends IService<FileInfo> {
         return map;
     }
 
+    /**
+     * 更新文件版本
+     * @param fileName
+     */
     void updateVersion(String fileName);
 
+    /**
+     * 回退版本
+     * @param fileName
+     * @param remoteFileName
+     */
     void revert(String fileName, String remoteFileName);
 
+    /**
+     * 保存文件
+     * @param file
+     * @param remoteAddr
+     * @return
+     */
     int saveFile(MultipartFile file, String remoteAddr);
+
+    /**
+     * 根据组名和FastDFS存储的文件名删除历史版本
+     * @param groupName
+     * @param remoteFileName
+     * @return
+     */
+    boolean deleteHistory(String groupName, String remoteFileName);
 }

@@ -35,22 +35,20 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     private Cache<Long,FileInfo> fileInfoCache;
 
     FileInfoServiceImpl() {
-        operators.put("192.100.1.210", "曲广昊");
-        operators.put("192.100.1.211", "方程");
-        operators.put("192.100.1.213", "崔志臣");
-        operators.put("192.100.1.230", "武瑞敏");
-        operators.put("192.100.1.231", "汪垚");
-        operators.put("192.100.1.232", "向凌吉");
-        operators.put("192.100.1.233", "江天");
-        operators.put("192.100.1.237", "卢荟芳");
-        operators.put("192.100.1.123", "魏健东");
+        operators.put("192.100.5.100", "魏健东");
+        operators.put("192.100.5.101", "武瑞敏");
+        operators.put("192.100.5.102", "向凌吉");
+        operators.put("192.100.5.103", "方程");
+        operators.put("192.100.5.104", "汪垚");
+        operators.put("192.100.5.105", "崔志臣");
+        operators.put("192.100.5.106", "卢荟芳");
+        operators.put("192.100.5.107", "孟祥婷");
     }
 
     @Autowired
     FileInfoMapper fileInfoMapper;
 
     @Override
-    @Cached(name = "FileInfoService.getUserById", expire = 3600)
     public FileInfo findFileByName(String fileName) {
         return fileInfoMapper.findCurrentFileByName(fileName);
     }
@@ -61,79 +59,33 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     }
 
     @Override
-    @Cached(name = "FileInfoService.selectCountByREGEXP", expire = 3600)
-    public int selectCountByREGEXP(String suffix, boolean other) {
-        int count;
-        if (!other) {
-            count = fileInfoMapper.selectCountByREGEXP(suffix,"");
-        } else {
-            count = fileInfoMapper.selectCountByREGEXP(suffix,"NOT");
-        }
-        return count;
+    public int selectCount(String category) {
+        String suffix = (String) categoryToSuffix(category).get("suffix");
+        boolean other = (boolean) categoryToSuffix(category).get("other");
+        return fileInfoMapper.selectCountByREGEXP(suffix,other);
     }
 
     @Override
-    @Cached(name = "FileInfoService.selectListByREGEXP", expire = 3600)
-    public List<FileInfo> selectListByREGEXP(String suffix, boolean other, long current, long size, String order, boolean asc) {
+    public List<FileInfo> selectList(String category, long current, long size, String order, boolean asc) {
+        String suffix = (String) categoryToSuffix(category).get("suffix");
+        boolean other = (boolean) categoryToSuffix(category).get("other");
         List<FileInfo> fileInfoList;
         if ("file_name".equals(order) || "operator".equals(order)) {
-            if (!other) {
-                if (asc) {
-                    fileInfoList = fileInfoMapper.selectListForChinese(suffix, (current - 1) * size, size, order,
-                            "", "ASC");
-                } else {
-                    fileInfoList = fileInfoMapper.selectListForChinese(suffix, (current - 1) * size, size, order,
-                            "", "DESC");
-                }
-            } else {
-                if (asc) {
-                    fileInfoList = fileInfoMapper.selectListForChinese(suffix, (current - 1) * size, size, order,
-                             "NOT","ASC");
-                } else {
-                    fileInfoList = fileInfoMapper.selectListForChinese(suffix, (current - 1) * size, size, order,
-                            "NOT","DESC");
-                }
-            }
+            fileInfoList = fileInfoMapper.selectListForChinese(suffix, (current - 1) * size, size, order, other, asc);
         } else {
-            if (!other) {
-                if (asc) {
-                    fileInfoList = fileInfoMapper.selectListByREGEXP(suffix, (current - 1) * size, size, order,
-                            "", "ASC");
-                } else {
-                    fileInfoList = fileInfoMapper.selectListByREGEXP(suffix, (current - 1) * size, size, order,
-                            "", "DESC");
-                }
-            } else {
-                if (asc) {
-                    fileInfoList = fileInfoMapper.selectListByREGEXP(suffix, (current - 1) * size, size, order,
-                            "NOT","ASC");
-                } else {
-                    fileInfoList = fileInfoMapper.selectListByREGEXP(suffix, (current - 1) * size, size, order,
-                            "NOT","DESC");
-                }
-            }
+            fileInfoList = fileInfoMapper.selectListByREGEXP(suffix, (current - 1) * size, size, order, other, asc);
         }
-
         return fileInfoList;
     }
 
     @Override
-    @Cached(name = "FileInfoService.searchPage", expire = 3600)
     public List<FileInfo> searchPage(String fileName, long current, long size, String order, boolean asc) {
         List<FileInfo> fileInfoList;
         // 如果是按中文排序
         if ("file_name".equals(order) || "operator".equals(order)) {
-            if (asc) {
-                fileInfoList = fileInfoMapper.searchPageForChinese(fileName, current, size, order, "ASC");
-            } else {
-                fileInfoList = fileInfoMapper.searchPageForChinese(fileName, current, size, order, "DESC");
-            }
+            fileInfoList = fileInfoMapper.searchPageForChinese(fileName, current, size, order, asc);
         } else {
-            if (asc) {
-                fileInfoList = fileInfoMapper.searchPage(fileName, current, size, order, "ASC");
-            } else {
-                fileInfoList = fileInfoMapper.searchPage(fileName, current, size, order, "DESC");
-            }
+            fileInfoList = fileInfoMapper.searchPage(fileName, current, size, order, asc);
         }
         return fileInfoList;
     }
@@ -182,5 +134,19 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         }
         return 3;
     }
+
+    @Override
+    public boolean deleteHistory(String groupName, String remoteFileName) {
+        try {
+            String deleteFileMsg = FastDFSClient.deleteFile(groupName, remoteFileName);
+            logger.info(deleteFileMsg);
+            fileInfoMapper.deleteByRemoteFileName(groupName, remoteFileName);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
 
 }
