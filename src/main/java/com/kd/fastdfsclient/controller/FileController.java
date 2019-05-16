@@ -6,7 +6,6 @@ import com.kd.fastdfsclient.mapper.FileInfoMapper;
 import com.kd.fastdfsclient.service.FileInfoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
-import io.swagger.models.auth.In;
 import lombok.Cleanup;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
@@ -52,6 +51,11 @@ public class FileController {
         return result.stream().mapToInt(Integer::intValue).toArray();
     }
 
+    /**
+     * 上传文件之前先检查一遍是否有重名文件
+     * @param fileName
+     * @return
+     */
     @ApiOperation("查看是否已经存在文件")
     @GetMapping("/findFile")
     public boolean findFile(String fileName) {
@@ -80,6 +84,7 @@ public class FileController {
         return "success";
     }
 
+    @ApiOperation("删除某个历史文件")
     @GetMapping("/deleteHistory")
     public boolean deleteHistory(String groupName, String remoteFileName) {
         return fileInfoService.deleteHistory(groupName, remoteFileName);
@@ -120,7 +125,6 @@ public class FileController {
     }
 
     /**
-     *
      * @param category 分类
      * @param current 当前的页数
      * @param size 每页的大小

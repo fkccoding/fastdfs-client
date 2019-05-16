@@ -70,6 +70,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         String suffix = (String) categoryToSuffix(category).get("suffix");
         boolean other = (boolean) categoryToSuffix(category).get("other");
         List<FileInfo> fileInfoList;
+        // 如果是按中文排序
         if ("file_name".equals(order) || "operator".equals(order)) {
             fileInfoList = fileInfoMapper.selectListForChinese(suffix, (current - 1) * size, size, order, other, asc);
         } else {
