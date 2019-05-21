@@ -1,5 +1,8 @@
 package com.kd.fastdfsclient.service;
 
+import com.alicp.jetcache.anno.CacheInvalidate;
+import com.alicp.jetcache.anno.CacheUpdate;
+import com.alicp.jetcache.anno.Cached;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.kd.fastdfsclient.entity.FileInfo;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,12 +22,14 @@ public interface FileInfoService extends IService<FileInfo> {
      * @param fileName
      * @return
      */
+    @Cached(name = "fileInfoCache", expire = 60, key = "#fileName")
     FileInfo findFileByName(String fileName);
 
     /**
      * 根据文件名删除文件
      * @param fileName
      */
+    @CacheInvalidate(name = "fileInfoCache", key = "#fileName")
     void deleteByFileName(String fileName);
 
     /**
@@ -43,10 +48,11 @@ public interface FileInfoService extends IService<FileInfo> {
      * @param asc
      * @return
      */
+    @Cached(name = "fileInfoListCache", expire = 60, key = "#targetClass")
     List<FileInfo> selectList(String category, long current, long size, String order, boolean asc);
 
     /**
-     * fuzzySearch
+     * 模糊搜索
      * @param fileName
      * @param current
      * @param size
@@ -54,7 +60,8 @@ public interface FileInfoService extends IService<FileInfo> {
      * @param asc
      * @return
      */
-    List<FileInfo> searchPage(String fileName, long current, long size, String order, boolean asc);
+    @Cached(name = "fuzzySearch",expire = 60, key = "#fileName")
+    List<FileInfo> fuzzySearch(String fileName, long current, long size, String order, boolean asc);
 
     /**
      * 以适合人类的方式显示文件大小
@@ -108,6 +115,7 @@ public interface FileInfoService extends IService<FileInfo> {
      * 更新文件版本
      * @param fileName
      */
+    @CacheInvalidate(name = "fileInfoCache",key = "#fileName")
     void updateVersion(String fileName);
 
     /**
@@ -115,6 +123,7 @@ public interface FileInfoService extends IService<FileInfo> {
      * @param fileName
      * @param remoteFileName
      */
+    @CacheInvalidate(name = "fileInfoCache", key = "#fileName")
     void revert(String fileName, String remoteFileName);
 
     /**
@@ -123,6 +132,7 @@ public interface FileInfoService extends IService<FileInfo> {
      * @param remoteAddr
      * @return
      */
+    @CacheInvalidate(name = "fileInfoListCache", key = "#targetClass")
     int saveFile(MultipartFile file, String remoteAddr);
 
     /**
@@ -131,5 +141,6 @@ public interface FileInfoService extends IService<FileInfo> {
      * @param remoteFileName
      * @return
      */
+    @CacheInvalidate(name = "fileInfoCache")
     boolean deleteHistory(String groupName, String remoteFileName);
 }

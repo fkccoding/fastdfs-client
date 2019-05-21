@@ -12,7 +12,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
 public class ViewController extends WebMvcConfigurerAdapter {
     @Override
     public void addViewControllers(ViewControllerRegistry registry) {
-        registry.addViewController("/").setViewName("/do");
-        registry.addViewController("/status").setViewName("/status");
+        registry.addViewController("/").setViewName("do");
+        registry.addViewController("/status").setViewName("status");
     }
 }

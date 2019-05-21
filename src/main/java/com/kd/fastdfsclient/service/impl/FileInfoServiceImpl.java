@@ -1,13 +1,13 @@
 package com.kd.fastdfsclient.service.impl;
 
 import com.alicp.jetcache.Cache;
-import com.alicp.jetcache.anno.Cached;
 import com.alicp.jetcache.anno.CreateCache;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.kd.fastdfsclient.entity.FileInfo;
 import com.kd.fastdfsclient.fastdfs.FastDFSClient;
 import com.kd.fastdfsclient.mapper.FileInfoMapper;
 import com.kd.fastdfsclient.service.FileInfoService;
+import com.kd.fastdfsclient.service.OperatorService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +16,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @Author: www.chuckfang.top
@@ -29,24 +27,14 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
 
     private static Logger logger = LoggerFactory.getLogger(FileInfoServiceImpl.class);
 
-    private Map<String, String> operators = new HashMap<>();
-
     @CreateCache(expire = 3600)
     private Cache<Long,FileInfo> fileInfoCache;
 
-    FileInfoServiceImpl() {
-        operators.put("192.100.5.100", "魏健东");
-        operators.put("192.100.5.101", "武瑞敏");
-        operators.put("192.100.5.102", "向凌吉");
-        operators.put("192.100.5.103", "方程");
-        operators.put("192.100.5.104", "汪垚");
-        operators.put("192.100.5.105", "崔志臣");
-        operators.put("192.100.5.106", "卢荟芳");
-        operators.put("192.100.5.107", "孟祥婷");
-    }
-
     @Autowired
     FileInfoMapper fileInfoMapper;
+
+    @Autowired
+    OperatorService operatorService;
 
     @Override
     public FileInfo findFileByName(String fileName) {
@@ -80,7 +68,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     }
 
     @Override
-    public List<FileInfo> searchPage(String fileName, long current, long size, String order, boolean asc) {
+    public List<FileInfo> fuzzySearch(String fileName, long current, long size, String order, boolean asc) {
         List<FileInfo> fileInfoList;
         // 如果是按中文排序
         if ("file_name".equals(order) || "operator".equals(order)) {
@@ -99,7 +87,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     public void updateVersion(String fileName) {
         if (null != findFileByName(fileName)) {
             fileInfoMapper.updateVersionToOldByFileName(fileName);
-            logger.info("The file name is occupied, we are already update the version to new.");
+            logger.info("The file name is occupied, we are already update the version to new!");
         }
     }
 
@@ -117,7 +105,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         String fileName = file.getOriginalFilename();
         long realSize = file.getSize();
         String hFileSize = getHumanSize(realSize);
-        String operator = operators.get(remoteAddr);
+        String operator = operatorService.findByIP(remoteAddr).getOperator();
         //If the user's IP is illegal
         if (null == operator) {
             operator = remoteAddr;

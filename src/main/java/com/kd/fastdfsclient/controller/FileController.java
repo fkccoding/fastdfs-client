@@ -11,6 +11,8 @@ import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -105,7 +107,9 @@ public class FileController {
             return "File not found!!!";
         }
         // @Cleanup 自动关闭资源，针对实现了java.io.Closeable接口的对象有效
+        logger.info("开始从FastDFS获取流......");
         @Cleanup InputStream input = FastDFSClient.downFile(groupName, remoteFileName);
+        logger.info("从FastDFS获取流成功！！！");
         int index;
         byte[] bytes = new byte[1024];
         @Cleanup ServletOutputStream outputStream = null;
@@ -113,12 +117,15 @@ public class FileController {
             response.setHeader("Content-type", "application/octet-stream");
             response.setHeader("Content-disposition", "attachment;fileName=" + new String(fileName.getBytes(), "ISO-8859-1"));
             outputStream = response.getOutputStream();
+            //浏览器真正响应是从这里开始
             logger.info("Join download queue...");
             while ((index = input.read(bytes)) != -1) {
                 outputStream.write(bytes, 0, index);
                 outputStream.flush();
             }
+            logger.info("下载成功！！！");
         } catch (IOException e) {
+            logger.info("下载失败！！！");
             e.printStackTrace();
         }
         return "success!";
@@ -147,7 +154,7 @@ public class FileController {
         // 如果有非空文件名传过来，说明使用模糊搜索的功能，否则使用分类功能
         if (null != fileName && !"".equals(fileName)) {
             count = fileInfoMapper.searchCount("%" + fileName + "%");
-            fileInfoList = fileInfoService.searchPage("%" + fileName + "%", (current - 1) * size, size, order, asc);
+            fileInfoList = fileInfoService.fuzzySearch("%" + fileName + "%", (current - 1) * size, size, order, asc);
         } else {
             count = fileInfoService.selectCount(category);
             fileInfoList = fileInfoService.selectList(category, current, size, order, asc);

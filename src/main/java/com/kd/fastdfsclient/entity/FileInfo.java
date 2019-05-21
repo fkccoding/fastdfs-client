@@ -13,9 +13,9 @@ import java.util.Date;
  */
 @Data
 public class FileInfo implements Serializable {
-    @TableId
     private String fileName;
     private String groupName;
+    @TableId
     private String remoteFileName;
     private Date uploadDate;
     private String fileSize;
