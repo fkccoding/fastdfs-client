@@ -14,7 +14,7 @@ import java.util.function.Consumer;
  * @Author: www.chuckfang.top
  * @Date: 2019/5/6 20:56
  */
-@Configuration
+//@Configuration
 public class JetCacheConfig {
     @Bean
     public SpringConfigProvider springConfigProvider() {

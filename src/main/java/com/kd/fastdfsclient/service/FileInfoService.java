@@ -5,6 +5,8 @@ import com.alicp.jetcache.anno.CacheUpdate;
 import com.alicp.jetcache.anno.Cached;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.kd.fastdfsclient.entity.FileInfo;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.math.BigDecimal;
@@ -22,21 +24,33 @@ public interface FileInfoService extends IService<FileInfo> {
      * @param fileName
      * @return
      */
-    @Cached(name = "fileInfoCache", expire = 60, key = "#fileName")
+    @Cacheable(value = "fileInfo" , key = "#fileName")
     FileInfo findFileByName(String fileName);
 
     /**
      * 根据文件名删除文件
      * @param fileName
      */
-    @CacheInvalidate(name = "fileInfoCache", key = "#fileName")
+//    @CacheInvalidate(name = "fileInfoCache", key = "#fileName")
+    @CacheEvict(value={"fileInfoListCache","totalCache","fuzzySearch","fileInfo"}, allEntries=true)
     void deleteByFileName(String fileName);
+
+    /**
+     * 保存文件
+     * @param file
+     * @param remoteAddr
+     * @return
+     */
+    //@CacheInvalidate(name = "fileInfoListCache", key = "#fileListCache")
+    @CacheEvict(value={"fileInfoListCache","totalCache","fuzzySearch","fileInfo"}, allEntries=true)
+    int saveFile(MultipartFile file, String remoteAddr);
 
     /**
      * 根据文件类型查询总数
      * @param category
      * @return
      */
+    @Cacheable(value = "totalCache",key = "targetClass")
     int selectCount(String category);
 
     /**
@@ -48,7 +62,7 @@ public interface FileInfoService extends IService<FileInfo> {
      * @param asc
      * @return
      */
-    @Cached(name = "fileInfoListCache", expire = 60, key = "#targetClass")
+    @Cacheable(value = "fileInfoListCache")
     List<FileInfo> selectList(String category, long current, long size, String order, boolean asc);
 
     /**
@@ -60,7 +74,7 @@ public interface FileInfoService extends IService<FileInfo> {
      * @param asc
      * @return
      */
-    @Cached(name = "fuzzySearch",expire = 60, key = "#fileName")
+    @Cacheable(value = "fuzzySearch", key = "#fileName")
     List<FileInfo> fuzzySearch(String fileName, long current, long size, String order, boolean asc);
 
     /**
@@ -115,7 +129,8 @@ public interface FileInfoService extends IService<FileInfo> {
      * 更新文件版本
      * @param fileName
      */
-    @CacheInvalidate(name = "fileInfoCache",key = "#fileName")
+//    @CacheInvalidate(name = "fileInfoCache",key = "#fileName")
+    @CacheEvict(value={"fileInfoListCache","totalCache","fuzzySearch","fileInfo"}, allEntries=true)
     void updateVersion(String fileName);
 
     /**
@@ -123,17 +138,9 @@ public interface FileInfoService extends IService<FileInfo> {
      * @param fileName
      * @param remoteFileName
      */
-    @CacheInvalidate(name = "fileInfoCache", key = "#fileName")
+//    @CacheInvalidate(name = "fileInfoCache", key = "#fileName")
+    @CacheEvict(value={"fileInfoListCache","totalCache","fuzzySearch","fileInfo"}, allEntries=true)
     void revert(String fileName, String remoteFileName);
-
-    /**
-     * 保存文件
-     * @param file
-     * @param remoteAddr
-     * @return
-     */
-    @CacheInvalidate(name = "fileInfoListCache", key = "#targetClass")
-    int saveFile(MultipartFile file, String remoteAddr);
 
     /**
      * 根据组名和FastDFS存储的文件名删除历史版本
@@ -141,6 +148,7 @@ public interface FileInfoService extends IService<FileInfo> {
      * @param remoteFileName
      * @return
      */
-    @CacheInvalidate(name = "fileInfoCache")
+//    @CacheInvalidate(name = "fileInfoCache")
+    @CacheEvict(value={"fileInfoListCache","totalCache","fuzzySearch","fileInfo"}, allEntries=true)
     boolean deleteHistory(String groupName, String remoteFileName);
 }

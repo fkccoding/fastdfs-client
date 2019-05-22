@@ -4,6 +4,7 @@ import com.alicp.jetcache.Cache;
 import com.alicp.jetcache.anno.CreateCache;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.kd.fastdfsclient.entity.FileInfo;
+import com.kd.fastdfsclient.entity.OperatorInfo;
 import com.kd.fastdfsclient.fastdfs.FastDFSClient;
 import com.kd.fastdfsclient.mapper.FileInfoMapper;
 import com.kd.fastdfsclient.service.FileInfoService;
@@ -26,9 +27,6 @@ import java.util.List;
 public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> implements FileInfoService {
 
     private static Logger logger = LoggerFactory.getLogger(FileInfoServiceImpl.class);
-
-    @CreateCache(expire = 3600)
-    private Cache<Long,FileInfo> fileInfoCache;
 
     @Autowired
     FileInfoMapper fileInfoMapper;
@@ -105,10 +103,11 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         String fileName = file.getOriginalFilename();
         long realSize = file.getSize();
         String hFileSize = getHumanSize(realSize);
-        String operator = operatorService.findByIP(remoteAddr).getOperator();
+        OperatorInfo operatorInfo = operatorService.findByIP(remoteAddr);
         //If the user's IP is illegal
-        if (null == operator) {
-            operator = remoteAddr;
+        String operator = remoteAddr;
+        if (operatorInfo != null) {
+            operator = operatorInfo.getOperator();
         }
         try {
             // Get the file and save it to FastDFS somewhere
