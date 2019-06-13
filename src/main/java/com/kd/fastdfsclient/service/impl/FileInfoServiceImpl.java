@@ -1,7 +1,5 @@
 package com.kd.fastdfsclient.service.impl;
 
-import com.alicp.jetcache.Cache;
-import com.alicp.jetcache.anno.CreateCache;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.kd.fastdfsclient.entity.FileInfo;
 import com.kd.fastdfsclient.entity.OperatorInfo;
@@ -9,6 +7,7 @@ import com.kd.fastdfsclient.fastdfs.FastDFSClient;
 import com.kd.fastdfsclient.mapper.FileInfoMapper;
 import com.kd.fastdfsclient.service.FileInfoService;
 import com.kd.fastdfsclient.service.OperatorService;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,19 +23,28 @@ import java.util.List;
  * @Date: 2019/3/26 11:13
  */
 @Service
+@RequiredArgsConstructor(onConstructor = @__(@Autowired))
 public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> implements FileInfoService {
 
     private static Logger logger = LoggerFactory.getLogger(FileInfoServiceImpl.class);
 
-    @Autowired
-    FileInfoMapper fileInfoMapper;
+    private final FileInfoMapper fileInfoMapper;
 
-    @Autowired
-    OperatorService operatorService;
+    private final OperatorService operatorService;
 
     @Override
     public FileInfo findFileByName(String fileName) {
         return fileInfoMapper.findCurrentFileByName(fileName);
+    }
+
+    @Override
+    public List<FileInfo> findAllFileByName(String fileName) {
+        return fileInfoMapper.findAllFileByName(fileName);
+    }
+
+    @Override
+    public String findFileByGroupAndRemoteFileName(String groupName, String remoteFileName) {
+        return fileInfoMapper.findFileByGroupAndRemoteFileName(groupName,remoteFileName);
     }
 
     @Override
@@ -45,10 +53,28 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     }
 
     @Override
+    public boolean deleteHistory(String groupName, String remoteFileName) {
+        try {
+            String deleteFileMsg = FastDFSClient.deleteFile(groupName, remoteFileName);
+            logger.info(deleteFileMsg);
+            fileInfoMapper.deleteByRemoteFileName(groupName, remoteFileName);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    @Override
     public int selectCount(String category) {
         String suffix = (String) categoryToSuffix(category).get("suffix");
         boolean other = (boolean) categoryToSuffix(category).get("other");
         return fileInfoMapper.selectCountByREGEXP(suffix,other);
+    }
+
+    @Override
+    public int searchCount(String s) {
+        return fileInfoMapper.searchCount(s);
     }
 
     @Override
@@ -122,19 +148,5 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         }
         return 3;
     }
-
-    @Override
-    public boolean deleteHistory(String groupName, String remoteFileName) {
-        try {
-            String deleteFileMsg = FastDFSClient.deleteFile(groupName, remoteFileName);
-            logger.info(deleteFileMsg);
-            fileInfoMapper.deleteByRemoteFileName(groupName, remoteFileName);
-        } catch (Exception e) {
-            e.printStackTrace();
-            return false;
-        }
-        return true;
-    }
-
 
 }
