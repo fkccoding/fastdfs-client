@@ -3,6 +3,7 @@ package com.kd.fastdfsclient.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.kd.fastdfsclient.entity.FileInfo;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -67,6 +68,7 @@ public interface FileInfoService extends IService<FileInfo> {
      */
     //@CacheInvalidate(name = "fileInfoListCache", key = "#fileListCache")
     @CacheEvict(value={"fileInfoListCache","totalCache","fuzzySearch","fileInfo","fileInfoList"}, allEntries=true)
+//    @CachePut(value = "fileInfoList",key = "#file.originalFilename")
     int saveFile(MultipartFile file, String remoteAddr);
 
     /**

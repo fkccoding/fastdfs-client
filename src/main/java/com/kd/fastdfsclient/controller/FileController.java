@@ -111,7 +111,7 @@ public class FileController {
         }
         int index;
         byte[] bytes = new byte[1024];
-        @Cleanup ServletOutputStream outputStream;
+        @Cleanup ServletOutputStream outputStream = null;
         try {
             response.setHeader("Content-type", "application/octet-stream");
             response.setHeader("Content-disposition", "attachment;fileName="
