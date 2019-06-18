@@ -104,14 +104,14 @@ public class FileController {
             return "File not found!!!";
         }
         // @Cleanup 自动关闭资源，针对实现了java.io.Closeable接口的对象有效
-        @Cleanup InputStream input = FastDFSClient.downFile(groupName, remoteFileName);
-        if (input == null) {
+        InputStream inputStream = FastDFSClient.downFile(groupName, remoteFileName);
+        if (inputStream == null) {
             logger.error("从FastDFS获取流失败！！！");
             return "获取流失败！";
         }
         int index;
         byte[] bytes = new byte[1024];
-        @Cleanup ServletOutputStream outputStream = null;
+        ServletOutputStream outputStream = null;
         try {
             response.setHeader("Content-type", "application/octet-stream");
             response.setHeader("Content-disposition", "attachment;fileName="
@@ -119,7 +119,7 @@ public class FileController {
             outputStream = response.getOutputStream();
             //浏览器真正响应是从这里开始
             logger.info("Join download queue...");
-            while ((index = input.read(bytes)) != -1) {
+            while ((index = inputStream.read(bytes)) != -1) {
                 outputStream.write(bytes, 0, index);
                 outputStream.flush();
             }
@@ -128,6 +128,9 @@ public class FileController {
             logger.error("download failed!!!");
             e.printStackTrace();
             return "download failed";
+        } finally {
+            inputStream.close();
+            outputStream.close();
         }
         return "success!";
     }

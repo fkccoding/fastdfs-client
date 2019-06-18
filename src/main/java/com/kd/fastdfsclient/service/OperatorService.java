@@ -8,6 +8,6 @@ import org.springframework.cache.annotation.Cacheable;
  * @Date: 2019/5/21 15:16
  */
 public interface OperatorService {
-    @Cacheable
+    @Cacheable(value = "ip",key = "#ip")
     OperatorInfo findByIP(String ip);
 }

@@ -76,7 +76,7 @@ public interface FileInfoService extends IService<FileInfo> {
      * @param category
      * @return
      */
-    @Cacheable(value = "totalCache",key = "targetClass")
+    @Cacheable(value = "totalCache",key = "#category")
     int selectCount(String category);
 
     /**
