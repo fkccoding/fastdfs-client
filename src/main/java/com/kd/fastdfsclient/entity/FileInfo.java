@@ -13,6 +13,8 @@ import java.util.Date;
  */
 @Data
 public class FileInfo implements Serializable {
+
+    private static final long serialVersionUID = 5637320250798932740L;
     private String fileName;
     private String groupName;
     @TableId

@@ -10,6 +10,8 @@ import java.io.Serializable;
  */
 @Data
 public class OperatorInfo implements Serializable {
+
+    private static final long serialVersionUID = 7708485434924084010L;
     public String operator;
     public String ip;
 }
