@@ -8,8 +8,8 @@ import java.util.Date;
 
 
 /**
- * @Author: www.chuckfang.top
- * @Date: 2019/3/26 11:02
+ * Author: www.chuckfang.top
+ * Date: 2019/3/26 11:02
  */
 @Data
 public class FileInfo implements Serializable {

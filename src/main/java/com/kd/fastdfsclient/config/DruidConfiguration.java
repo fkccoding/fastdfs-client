@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /**
- * @Author: www.chuckfang.top
- * @Date: 2019/4/24 18:19
+ * Author: www.chuckfang.top
+ * Date: 2019/4/24 18:19
  */
 @Configuration
 public class DruidConfiguration {

@@ -9,8 +9,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 /**
- * @Author: www.chuckfang.top
- * @Date: 2019/3/26 11:15
+ * Author: www.chuckfang.top
+ * Date: 2019/3/26 11:15
  */
 @Repository
 public interface FileInfoMapper extends BaseMapper<FileInfo> {

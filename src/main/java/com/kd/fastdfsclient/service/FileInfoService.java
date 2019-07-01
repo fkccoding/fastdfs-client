@@ -13,8 +13,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * @Author: www.chuckfang.top
- * @Date: 2019/3/26 11:12
+ * Author: www.chuckfang.top
+ * Date: 2019/3/26 11:12
  */
 public interface FileInfoService extends IService<FileInfo> {
     /**
