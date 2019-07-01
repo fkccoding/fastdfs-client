@@ -7,8 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 /**
- * @Author: www.chuckfang.top
- * @Date: 2019/5/21 15:17
+ * Author: www.chuckfang.top
+ * Date: 2019/5/21 15:17
  */
 @Service
 public class OperatorServiceImpl implements OperatorService {

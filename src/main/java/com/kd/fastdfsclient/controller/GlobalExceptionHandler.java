@@ -6,8 +6,8 @@ import org.springframework.web.multipart.MultipartException;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 /**
- * @Author: www.chuckfang.top
- * @Date: 2019/3/8 9:19
+ * Author: www.chuckfang.top
+ * Date: 2019/3/8 9:19
  */
 @ControllerAdvice
 public class GlobalExceptionHandler {

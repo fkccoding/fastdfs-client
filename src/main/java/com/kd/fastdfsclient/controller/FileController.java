@@ -2,15 +2,18 @@ package com.kd.fastdfsclient.controller;
 
 import com.kd.fastdfsclient.entity.FileInfo;
 import com.kd.fastdfsclient.fastdfs.FastDFSClient;
+import com.kd.fastdfsclient.service.FileDownLoadService;
 import com.kd.fastdfsclient.service.FileInfoService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.Cleanup;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -22,24 +25,30 @@ import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
- * @Author: www.chuckfang.top
- * @Date: 2019/4/3 14:51
+ * Author: www.chuckfang.top
+ * Date: 2019/4/3 14:51
  */
 @CrossOrigin(maxAge = 3600)    // 解决跨域问题
 @RestController
 @Api(tags = "fileController", description = "文件系统后台管理")
-//使用lombok的注解，避免在类的成员上使用@Autowired注解，而是自动生成构造方法注入对象的代码
-@RequiredArgsConstructor(onConstructor = @__(@Autowired))
+// 使用lombok的注解，避免在类的成员上使用@Autowired注解，符合Spring规范
+// 而是自动生成构造方法注入对象的代码，并且可以防止注入静态对象时出现问题
+// @RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@Slf4j
 public class FileController {
-    private static Logger logger = LoggerFactory.getLogger(FileController.class);
+    @Autowired
+    private  FileInfoService fileInfoService;
 
-    private final FileInfoService fileInfoService;
+    @Autowired
+    @Qualifier("default")
+    private  FileDownLoadService fileDownLoadService;
 
     @ApiOperation("上传文件(同时支持单文件和多文件)")
     @PostMapping("/upload")
     public int[] fileUpload(@RequestParam("file") MultipartFile[] fileList, HttpServletRequest request) {
         // Prevent conflicts when multiple files are uploaded at the same time
-        List<Integer> result = new LinkedList<>();
+        //因为LinkedList插入元素时会新建Node对象
+        List<Integer> result = new ArrayList<>();
         for (MultipartFile multipartFile : fileList) {
             synchronized (this) {
                 fileInfoService.updateVersion(multipartFile.getOriginalFilename());
@@ -48,6 +57,19 @@ public class FileController {
             }
         }
         return result.stream().mapToInt(Integer::intValue).toArray();
+    }
+
+    /**
+     * @param groupName
+     * @param remoteFileName
+     * @param response
+     * @return
+     */
+    @ApiOperation("下载文件")
+    @GetMapping("/downFile")
+    public String downFile(@RequestParam("groupName") String groupName,
+                           @RequestParam("remoteFileName") String remoteFileName, HttpServletResponse response) {
+        return fileDownLoadService.downFile(groupName,remoteFileName,response);
     }
 
     /**
@@ -70,11 +92,11 @@ public class FileController {
             List<FileInfo> allFileByName = fileInfoService.findAllFileByName(fileName);
             for (FileInfo fileByName : allFileByName) {
                 if (null == fileByName) {
-                    logger.error("File not found!!!");
+                    log.error("File not found!!!");
                     return "file not found";
                 } else {
                     String deleteFileMsg = FastDFSClient.deleteFile(fileByName.getGroupName(), fileByName.getRemoteFileName());
-                    logger.info(deleteFileMsg);
+                    log.info(deleteFileMsg);
                     fileInfoService.deleteByFileName(fileName);
                 }
             }
@@ -86,53 +108,6 @@ public class FileController {
     @GetMapping("/deleteHistory")
     public boolean deleteHistory(String groupName, String remoteFileName) {
         return fileInfoService.deleteHistory(groupName, remoteFileName);
-    }
-    /**
-     * @param groupName
-     * @param remoteFileName
-     * @param response
-     * @return
-     */
-    @ApiOperation("下载文件")
-    @GetMapping("/downFile")
-    @SneakyThrows //可以对受检异常进行捕捉并抛出
-    public String downFile(@RequestParam("groupName") String groupName,
-                           @RequestParam("remoteFileName") String remoteFileName, HttpServletResponse response) {
-        String fileName = fileInfoService.findFileByGroupAndRemoteFileName(groupName, remoteFileName);
-        if (fileName == null) {
-            logger.error("File not found!!!");
-            return "File not found!!!";
-        }
-        // @Cleanup 自动关闭资源，针对实现了java.io.Closeable接口的对象有效
-        InputStream inputStream = FastDFSClient.downFile(groupName, remoteFileName);
-        if (inputStream == null) {
-            logger.error("从FastDFS获取流失败！！！");
-            return "获取流失败！";
-        }
-        int index;
-        byte[] bytes = new byte[1024];
-        ServletOutputStream outputStream = null;
-        try {
-            response.setHeader("Content-type", "application/octet-stream");
-            response.setHeader("Content-disposition", "attachment;fileName="
-                    + new String(fileName.getBytes(), StandardCharsets.ISO_8859_1));
-            outputStream = response.getOutputStream();
-            //浏览器真正响应是从这里开始
-            logger.info("Join download queue...");
-            while ((index = inputStream.read(bytes)) != -1) {
-                outputStream.write(bytes, 0, index);
-                outputStream.flush();
-            }
-            logger.info("download succeed!");
-        } catch (IOException e) {
-            logger.error("download failed!!!");
-            e.printStackTrace();
-            return "download failed";
-        } finally {
-            inputStream.close();
-            outputStream.close();
-        }
-        return "success!";
     }
 
     /**

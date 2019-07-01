@@ -10,8 +10,8 @@ import java.time.temporal.ChronoUnit;
 
 
 /**
- * @Author: www.chuckfang.top
- * @Date: 2019/5/15 16:48
+ * Author: www.chuckfang.top
+ * Date: 2019/5/15 16:48
  */
 @Service
 public class AnalyzeServiceImpl implements AnalyzeService {

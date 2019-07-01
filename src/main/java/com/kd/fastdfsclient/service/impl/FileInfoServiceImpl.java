@@ -8,6 +8,7 @@ import com.kd.fastdfsclient.mapper.FileInfoMapper;
 import com.kd.fastdfsclient.service.FileInfoService;
 import com.kd.fastdfsclient.service.OperatorService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,14 +20,13 @@ import java.util.Date;
 import java.util.List;
 
 /**
- * @Author: www.chuckfang.top
- * @Date: 2019/3/26 11:13
+ * Author: www.chuckfang.top
+ * Date: 2019/3/26 11:13
  */
 @Service
 @RequiredArgsConstructor(onConstructor = @__(@Autowired))
+@Slf4j
 public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> implements FileInfoService {
-
-    private static Logger logger = LoggerFactory.getLogger(FileInfoServiceImpl.class);
 
     private final FileInfoMapper fileInfoMapper;
 
@@ -56,7 +56,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     public boolean deleteHistory(String groupName, String remoteFileName) {
         try {
             String deleteFileMsg = FastDFSClient.deleteFile(groupName, remoteFileName);
-            logger.info(deleteFileMsg);
+            log.info(deleteFileMsg);
             fileInfoMapper.deleteByRemoteFileName(groupName, remoteFileName);
         } catch (Exception e) {
             e.printStackTrace();
@@ -111,7 +111,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     public void updateVersion(String fileName) {
         if (null != findFileByName(fileName)) {
             fileInfoMapper.updateVersionToOldByFileName(fileName);
-            logger.info("The file name is occupied, we are already update the version to new!");
+            log.info("The file name is occupied, we are already update the version to new!");
         }
     }
 
@@ -120,7 +120,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     public void revert(String fileName, String remoteFileName) {
         fileInfoMapper.updateVersionToOldByFileName(fileName);
         fileInfoMapper.updateVersionToCurrentByRemoteFileName(remoteFileName);
-        logger.info("revert success ！");
+        log.info("revert success ！");
     }
 
     @Override
@@ -138,12 +138,12 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
         try {
             // Get the file and save it to FastDFS somewhere
             String[] strings = FastDFSClient.saveFile(file);
-            logger.info("upload path is " + strings[0]);
+            log.info("upload path is " + strings[0]);
 
             // Save FileInfo to mysql
             this.save(new FileInfo(fileName,strings[1],strings[2],new Date(),hFileSize,realSize,1.0,operator,1));
         } catch (Exception e) {
-            logger.error("upload file failed", e);
+            log.error("upload file failed", e);
             return 2;
         }
         return 3;
