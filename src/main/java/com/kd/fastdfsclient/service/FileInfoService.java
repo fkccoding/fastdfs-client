@@ -117,12 +117,18 @@ public interface FileInfoService extends IService<FileInfo> {
      */
     default String getHumanSize(double realSize) {
         String hFileSize = realSize + "B";
-        if (realSize > 1024 && realSize / 1024 <= 1024) {
+        long kb = (long)realSize >>> 10;
+        long mb = kb >>> 10;
+        long gb = mb >>> 10;
+        if (realSize > 1024 && kb <= 1024) {
             BigDecimal bd = new BigDecimal(realSize / 1024);
             hFileSize = bd.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue() + "KB";
-        } else if (realSize / 1024 > 1024) {
-            BigDecimal bd = new BigDecimal(realSize / 1024 / 1024);
+        } else if (kb > 1024 && mb <= 1024) {
+            BigDecimal bd = new BigDecimal(realSize / 1024/1024);
             hFileSize = bd.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue() + "MB";
+        } else if (mb > 1024 && gb <= 1024) {
+            BigDecimal bd = new BigDecimal(realSize / 1024/1024/1024);
+            hFileSize = bd.setScale(2, BigDecimal.ROUND_HALF_UP).doubleValue() + "GB";
         }
         return hFileSize;
     }
