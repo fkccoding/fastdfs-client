@@ -53,14 +53,15 @@ public class FileInfo implements Serializable {
     private double version;
 
     /**
+     * 表示目前的文件是否最新版，最新版该值为1，否则为0
+     */
+    private int isCurrent;
+
+    /**
      * 文件的上传人
      */
     private String operator;
 
-    /**
-     * 表示目前的文件是否最新版，最新版该值为1，否则为0
-     */
-    private int isCurrent;
 
 
     public FileInfo() {

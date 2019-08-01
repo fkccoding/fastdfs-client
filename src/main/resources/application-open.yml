@@ -1,5 +1,5 @@
 spring:
-  http:
+  servlet:
     multipart:
       enabled: true
       max-file-size: 500MB
@@ -10,7 +10,10 @@ spring:
     password: *
     driver-class-name: com.mysql.jdbc.Driver
     type: com.alibaba.druid.pool.DruidDataSource
-
+  redis:
+    database: 0
+    host: 0.0.0.0
+    port: 6379
 
 # 远程缓存依赖redis
 #jetcache:

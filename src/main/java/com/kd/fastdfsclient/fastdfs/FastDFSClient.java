@@ -55,7 +55,7 @@ public class FastDFSClient {
 		return strings;
 	}
 
-	public static String[] upload(FastDFSFile file) {
+	private static String[] upload(FastDFSFile file) {
 		logger.info("File Name: " + file.getName() + " File Length:" + file.getContent().length);
 
 		NameValuePair[] meta_list = new NameValuePair[1];
@@ -133,7 +133,7 @@ public class FastDFSClient {
 		return trackerClient.getFetchStorages(trackerServer, groupName, remoteFileName);
 	}
 
-	public static String getTrackerUrl() throws IOException {
+	private static String getTrackerUrl() throws IOException {
 		return "http://"+getTrackerServer().getInetSocketAddress().getHostString()+":"+ClientGlobal.getG_tracker_http_port()+"/";
 	}
 

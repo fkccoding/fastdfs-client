@@ -13,6 +13,6 @@ public interface OperatorService {
      * @param ip
      * @return
      */
-    @Cacheable(value = "ip",key = "#ip")
+//    @Cacheable(value = "ip",key = "#ip")
     OperatorInfo findByIP(String ip);
 }

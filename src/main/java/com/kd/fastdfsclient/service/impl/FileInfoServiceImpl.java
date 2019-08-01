@@ -69,6 +69,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     public int selectCount(String category) {
         String suffix = (String) categoryToSuffix(category).get("suffix");
         boolean other = (boolean) categoryToSuffix(category).get("other");
+        System.out.println("从数据库取数据");
         return fileInfoMapper.selectCountByREGEXP(suffix,other);
     }
 
@@ -79,6 +80,7 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
 
     @Override
     public List<FileInfo> selectList(String category, long current, long size, String order, boolean asc) {
+        System.out.println("从数据库取数据");
         String suffix = (String) categoryToSuffix(category).get("suffix");
         boolean other = (boolean) categoryToSuffix(category).get("other");
         List<FileInfo> fileInfoList;

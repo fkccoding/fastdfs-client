@@ -45,9 +45,9 @@ public class FileController {
 
     @ApiOperation("上传文件(同时支持单文件和多文件)")
     @PostMapping("/upload")
-    public int[] fileUpload(@RequestParam("file") MultipartFile[] fileList, HttpServletRequest request) {
+    public List<Integer> fileUpload(@RequestParam("file") MultipartFile[] fileList, HttpServletRequest request) {
         // Prevent conflicts when multiple files are uploaded at the same time
-        //因为LinkedList插入元素时会新建Node对象
+        // 因为LinkedList插入元素时会新建Node对象
         List<Integer> result = new ArrayList<>();
         for (MultipartFile multipartFile : fileList) {
             synchronized (this) {
@@ -56,7 +56,8 @@ public class FileController {
                 result.add(i);
             }
         }
-        return result.stream().mapToInt(Integer::intValue).toArray();
+//        return result.stream().mapToInt(Integer::intValue).toArray();
+        return result;
     }
 
     /**
