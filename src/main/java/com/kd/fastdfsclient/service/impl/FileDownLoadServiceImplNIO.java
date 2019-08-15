@@ -38,6 +38,11 @@ public class FileDownLoadServiceImplNIO implements FileDownLoadService {
         return "success!";
     }
 
+    @Override
+    public String zipDownFile(String[] groupNameList, String[] remoteFileNameList, HttpServletResponse response) {
+        return null;
+    }
+
 
     private static StorageClient getTrackerClient() throws IOException {
         TrackerServer trackerServer = getTrackerServer();

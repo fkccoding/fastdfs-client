@@ -11,4 +11,6 @@ public interface FileDownLoadService {
      * @return
      */
     String downFile(String groupName,String remoteFileName, HttpServletResponse response);
+
+    String zipDownFile(String[] groupNameList, String[] remoteFileNameList, HttpServletResponse response);
 }

@@ -2,6 +2,7 @@ package com.kd.fastdfsclient.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.kd.fastdfsclient.entity.FileInfo;
+import com.kd.fastdfsclient.entity.ShareFileInfo;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
 import org.springframework.cache.annotation.Cacheable;
@@ -181,4 +182,5 @@ public interface FileInfoService extends IService<FileInfo> {
     @CacheEvict(value={"fileInfoListCache","totalCache","fuzzySearch","fileInfo","fileInfoList"}, allEntries=true)
     void revert(String fileName, String remoteFileName);
 
+    FileInfo findFileById(String fileId);
 }

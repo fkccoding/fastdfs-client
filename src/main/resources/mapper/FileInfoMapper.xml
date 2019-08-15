@@ -92,14 +92,23 @@
     </select>
 
     <update id="updateVersionToOldByFileName">
-        UPDATE file_info SET is_current=0 WHERE file_name=#{fileName} AND is_current=1;
+        UPDATE `file_info` SET is_current=0 WHERE file_name=#{fileName} AND is_current=1;
     </update>
 
     <update id="updateVersionToCurrentByRemoteFileName">
-        UPDATE file_info SET is_current=1 WHERE remote_file_name=#{remoteFileName};
+        UPDATE `file_info` SET is_current=1 WHERE remote_file_name=#{remoteFileName};
     </update>
 
     <select id="countUpload" resultType="int">
         SELECT COUNT(*) FROM `file_info` WHERE upload_date &gt;= #{beforeTime} AND upload_date &lt;= #{afterTime};
     </select>
+
+    <select id="findFileById" resultType="com.kd.fastdfsclient.entity.FileInfo">
+        SELECT * FROM `file_info` WHERE file_id = #{fileId};
+    </select>
+
+
+    <update id="setFileId">
+        UPDATE `file_info` SET file_id=#{fileId} WHERE file_id=null ;
+    </update>
 </mapper>

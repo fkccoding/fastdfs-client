@@ -2,8 +2,10 @@ package com.kd.fastdfsclient.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.kd.fastdfsclient.entity.FileInfo;
+import com.kd.fastdfsclient.entity.ShareFileInfo;
 import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -140,4 +142,13 @@ public interface FileInfoMapper extends BaseMapper<FileInfo> {
      * @return
      */
     int countUpload(@Param("beforeTime") LocalDateTime beforeTime, @Param("afterTime") LocalDateTime afterTime);
+
+    /**
+     * 根据文件ID返回文件信息
+     * @param fileId
+     * @return
+     */
+    FileInfo findFileById(@Param("fileId") String fileId);
+
+    void setFileId(@Param("fileId") String fileId);
 }

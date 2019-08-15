@@ -1,6 +1,7 @@
 package com.kd.fastdfsclient.controller;
 
 import com.kd.fastdfsclient.entity.FileInfo;
+import com.kd.fastdfsclient.entity.ShareFileInfo;
 import com.kd.fastdfsclient.fastdfs.FastDFSClient;
 import com.kd.fastdfsclient.service.FileDownLoadService;
 import com.kd.fastdfsclient.service.FileInfoService;
@@ -20,6 +21,7 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.Valid;
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -72,6 +74,28 @@ public class FileController {
                            @RequestParam("remoteFileName") String remoteFileName, HttpServletResponse response) {
         return fileDownLoadService.downFile(groupName,remoteFileName,response);
     }
+
+
+    /*@ApiOperation("批量下载文件")
+    @GetMapping("/zipDownFile")
+    public String zipDownFile(@RequestBody Map<String,String[]> json, HttpServletResponse response) {
+        String[] groupNameList = json.get("groupNameList");
+        String[] remoteFileNameList = json.get("remoteFileNameList");
+        if (groupNameList == null || remoteFileNameList == null) {
+            return "字段传输错误！";
+        }
+        return fileDownLoadService.zipDownFile(groupNameList,remoteFileNameList,response);
+    }*/
+
+    @ApiOperation("批量下载文件")
+    @GetMapping("/zipDownFile")
+    public String zipDownFile(String[] groupNameList, String[] remoteFileNameList, HttpServletResponse response) {
+        if (groupNameList == null || remoteFileNameList == null) {
+            return "字段传输错误！";
+        }
+        return fileDownLoadService.zipDownFile(groupNameList,remoteFileNameList,response);
+    }
+
 
     /**
      * 上传文件之前先检查一遍是否有重名文件
@@ -155,5 +179,13 @@ public class FileController {
     @GetMapping("/revert")
     public void revert(String fileName, String remoteFileName) {
         fileInfoService.revert(fileName, remoteFileName);
+    }
+
+
+    @ApiOperation("分享文件获取文件信息")
+    @GetMapping("/s/{fileId}")
+    public FileInfo share(@Valid @PathVariable("fileId") String fileId){
+        return fileInfoService.findFileById(fileId);
+
     }
 }

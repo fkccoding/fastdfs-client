@@ -1,8 +1,10 @@
 package com.kd.fastdfsclient.entity;
 
 import com.baomidou.mybatisplus.annotation.TableId;
+import lombok.Builder;
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 import java.util.Date;
 
@@ -12,10 +14,13 @@ import java.util.Date;
  * Date: 2019/3/26 11:02
  */
 @Data
+@Builder
 public class FileInfo implements Serializable {
 
     private static final long serialVersionUID = 5637320250798932740L;
 
+    @NotBlank(message = "文件ID不能为空")
+    private String fileId;
     /**
      * 文件名
      */
@@ -62,16 +67,11 @@ public class FileInfo implements Serializable {
      */
     private String operator;
 
-
-
     public FileInfo() {
     }
 
-    public FileInfo(String fileName) {
-        this.fileName = fileName;
-    }
-
-    public FileInfo(String fileName, String groupName, String remoteFileName, Date uploadDate, String fileSize, Long realSize, double version, String operator, int isCurrent) {
+    public FileInfo(@NotBlank(message = "文件ID不能为空") String fileId, String fileName, String groupName, String remoteFileName, Date uploadDate, String fileSize, Long realSize, double version, int isCurrent, String operator) {
+        this.fileId = fileId;
         this.fileName = fileName;
         this.groupName = groupName;
         this.remoteFileName = remoteFileName;
@@ -79,7 +79,7 @@ public class FileInfo implements Serializable {
         this.fileSize = fileSize;
         this.realSize = realSize;
         this.version = version;
-        this.operator = operator;
         this.isCurrent = isCurrent;
+        this.operator = operator;
     }
 }

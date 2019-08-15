@@ -3,6 +3,7 @@ package com.kd.fastdfsclient.service.impl;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.kd.fastdfsclient.entity.FileInfo;
 import com.kd.fastdfsclient.entity.OperatorInfo;
+import com.kd.fastdfsclient.entity.ShareFileInfo;
 import com.kd.fastdfsclient.fastdfs.FastDFSClient;
 import com.kd.fastdfsclient.mapper.FileInfoMapper;
 import com.kd.fastdfsclient.service.FileInfoService;
@@ -18,6 +19,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Author: www.chuckfang.top
@@ -126,6 +128,11 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
     }
 
     @Override
+    public FileInfo findFileById(String fileId) {
+        return fileInfoMapper.findFileById(fileId);
+    }
+
+    @Override
     public int saveFile(MultipartFile file, String remoteAddr) {
         // To prepare data
         String fileName = file.getOriginalFilename();
@@ -142,8 +149,24 @@ public class FileInfoServiceImpl extends ServiceImpl<FileInfoMapper, FileInfo> i
             String[] strings = FastDFSClient.saveFile(file);
             log.info("upload path is " + strings[0]);
 
+            // 生成UUID
+            String fileId = UUID.randomUUID().toString().replace("-", "").toLowerCase();
+
+            // 创建FileInfo对象
+            FileInfo fileInfo = FileInfo.builder()
+                    .fileId(fileId)
+                    .fileName(fileName)
+                    .groupName(strings[1])
+                    .remoteFileName(strings[2])
+                    .uploadDate(new Date())
+                    .fileSize(hFileSize)
+                    .realSize(realSize)
+                    .version(1.0)
+                    .operator(operator)
+                    .isCurrent(1)
+                    .build();
             // Save FileInfo to mysql
-            this.save(new FileInfo(fileName,strings[1],strings[2],new Date(),hFileSize,realSize,1.0,operator,1));
+            this.save(fileInfo);
         } catch (Exception e) {
             log.error("upload file failed", e);
             return 2;
