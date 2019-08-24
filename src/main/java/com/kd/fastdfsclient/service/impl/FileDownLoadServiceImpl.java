@@ -12,10 +12,7 @@ import org.springframework.stereotype.Service;
 
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
-import java.io.BufferedOutputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -27,19 +24,21 @@ public class FileDownLoadServiceImpl implements FileDownLoadService {
 
     private final FileInfoService fileInfoService;
 
+    private static final int DOWNLOAD_MAX_NUM = 10;
+
     @Override
-    @SneakyThrows //可以对受检异常进行捕捉并抛出
-    public String downFile(String groupName, String remoteFileName, HttpServletResponse response) {
+    @SneakyThrows
+    public void downFile(String groupName, String remoteFileName, HttpServletResponse response) throws Exception{
         String fileName = fileInfoService.findFileByGroupAndRemoteFileName(groupName, remoteFileName);
         if (fileName == null) {
             log.error("File not found!!!");
-            return "File not found!!!";
+            throw new Exception("File not found!!!");
         }
         // @Cleanup 自动关闭资源，针对实现了java.io.Closeable接口的对象有效
         @Cleanup InputStream inputStream = FastDFSClient.downFile(groupName, remoteFileName);
         if (inputStream == null) {
             log.error("从FastDFS获取流失败！！！");
-            return "获取流失败！";
+            throw new Exception("从FastDFS获取流失败！！！");
         }
         int index;
         byte[] bytes = new byte[1024];
@@ -59,14 +58,13 @@ public class FileDownLoadServiceImpl implements FileDownLoadService {
         } catch (IOException e) {
             log.error("downloading may make a mistake！");
             System.out.println("cause by ：" + e.getCause().toString());
-            return "downloading may make a mistake！";
+            throw new Exception("downloading may make a mistake！");
         }
-        return "success!";
     }
 
     @Override
     public String zipDownFile(String[] groupNameList, String[] remoteFileNameList, HttpServletResponse response) {
-        if (groupNameList.length >=10 || remoteFileNameList.length>=10){
+        if (groupNameList.length > DOWNLOAD_MAX_NUM || remoteFileNameList.length > DOWNLOAD_MAX_NUM){
             return "一次性下载文件不能超过10个！";
         }
 
@@ -122,7 +120,7 @@ public class FileDownLoadServiceImpl implements FileDownLoadService {
                 // 浏览器真正响应是从这里开始
                 log.info("Join download queue...");
 
-                // 把输入流写出到输入流
+                // 把输入流写出到输出流
                 while ((index = is.read(bytes)) != -1) {
                     os.write(bytes, 0, index);
                 }

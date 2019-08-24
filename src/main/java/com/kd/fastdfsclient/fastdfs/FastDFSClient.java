@@ -5,9 +5,8 @@ import org.csource.fastdfs.*;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.web.multipart.MultipartFile;
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
-import java.io.InputStream;
+
+import java.io.*;
 
 public class FastDFSClient {
 	private static org.slf4j.Logger logger = LoggerFactory.getLogger(FastDFSClient.class);
@@ -102,6 +101,27 @@ public class FastDFSClient {
 			byte[] fileByte = storageClient.download_file(groupName, remoteFileName);
 			InputStream ins = new ByteArrayInputStream(fileByte);
 			return ins;
+		} catch (IOException e) {
+			logger.error("IO Exception: Get File from Fast DFS failed", e);
+		} catch (Exception e) {
+			logger.error("Non IO Exception: Get File from Fast DFS failed", e);
+		}
+		return null;
+	}
+
+	//使用NIO下载文件
+	public static FileInputStream downFileNio(String groupName, String remoteFileName) {
+		try {
+			StorageClient storageClient = getTrackerClient();
+			byte[] fileByte = storageClient.download_file(groupName, remoteFileName);
+
+			// 把字节数组转化为File对象，然后再把File对象转化为FileInputStream
+			File file = new File("");
+			OutputStream output = new FileOutputStream(file);
+			BufferedOutputStream bufferedOutput = new BufferedOutputStream(output);
+			bufferedOutput.write(fileByte);
+			FileInputStream fileInputStream = new FileInputStream(file);
+			return fileInputStream;
 		} catch (IOException e) {
 			logger.error("IO Exception: Get File from Fast DFS failed", e);
 		} catch (Exception e) {

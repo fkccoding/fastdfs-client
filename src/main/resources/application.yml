@@ -1,5 +1,9 @@
 server:
   port: 12580
+  tomcat:
+    max-threads: 1000       # 最大线程数，相当于JUC线程池中的最大线程数，因为文件服务偏I/O型，所以需要更多的线程来同时处理
+    accept-count: 500       # 最大队列中的等待线程数，当请求大于最大线程数数，剩余的请求就会放在队列里面，这是队列能够存放的最大请求数
+    max-connections: 10000  # 这个参数是指在同一时间，tomcat能够接受的最大连接数。一般这个值要大于maxThreads+acceptCount
 
 spring:
   profiles:

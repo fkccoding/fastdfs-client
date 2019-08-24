@@ -10,7 +10,7 @@ public interface FileDownLoadService {
      * @param response
      * @return
      */
-    String downFile(String groupName,String remoteFileName, HttpServletResponse response);
+    void downFile(String groupName,String remoteFileName, HttpServletResponse response) throws Exception;
 
     String zipDownFile(String[] groupNameList, String[] remoteFileNameList, HttpServletResponse response);
 }

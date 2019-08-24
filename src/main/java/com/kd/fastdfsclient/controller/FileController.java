@@ -70,23 +70,22 @@ public class FileController {
      */
     @ApiOperation("下载文件")
     @GetMapping("/downFile")
-    public String downFile(@RequestParam("groupName") String groupName,
-                           @RequestParam("remoteFileName") String remoteFileName, HttpServletResponse response) {
-        return fileDownLoadService.downFile(groupName,remoteFileName,response);
+    public String downFile(String groupName, String remoteFileName, HttpServletResponse response) {
+        try {
+            fileDownLoadService.downFile(groupName,remoteFileName,response);
+        } catch (Exception e) {
+            System.out.println(e.getMessage());
+        }
+        return "success!";
     }
 
-
-    /*@ApiOperation("批量下载文件")
-    @GetMapping("/zipDownFile")
-    public String zipDownFile(@RequestBody Map<String,String[]> json, HttpServletResponse response) {
-        String[] groupNameList = json.get("groupNameList");
-        String[] remoteFileNameList = json.get("remoteFileNameList");
-        if (groupNameList == null || remoteFileNameList == null) {
-            return "字段传输错误！";
-        }
-        return fileDownLoadService.zipDownFile(groupNameList,remoteFileNameList,response);
-    }*/
-
+    /**
+     * 当用户选中多个文件时，可以把多个文件打包成一个压缩包，用户下载的是压缩包，而不是一个一个的文件
+     * @param groupNameList
+     * @param remoteFileNameList
+     * @param response
+     * @return
+     */
     @ApiOperation("批量下载文件")
     @GetMapping("/zipDownFile")
     public String zipDownFile(String[] groupNameList, String[] remoteFileNameList, HttpServletResponse response) {
